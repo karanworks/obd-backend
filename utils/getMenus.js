@@ -39,6 +39,9 @@ async function getMenus(req, res, user) {
     },
   });
 
+  // Sort the menus by the 'sequence' property
+  menus.sort((a, b) => a.sequence - b.sequence);
+
   const menusWithSubMenuProperty = menus.map((menu) => {
     return { ...menu, subItems: [] };
   });

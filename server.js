@@ -13,6 +13,7 @@ const dropdownRouter = require("./routes/dropdown");
 const invoiceRouter = require("./routes/invoice");
 const paymentRouter = require("./routes/payment");
 const eventRouter = require("./routes/event");
+const centerRouter = require("./routes/center");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -24,14 +25,14 @@ app.use(express.json());
 // cors connection
 app.use(
   cors({
-    origin: "http://localhost:3002",
+    origin: "http://localhost:3004",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3002");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3004");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, PUT, POST, PATCH, DELETE"
@@ -56,6 +57,7 @@ app.use("/", dropdownRouter);
 app.use("/", invoiceRouter);
 app.use("/", paymentRouter);
 app.use("/", eventRouter);
+app.use("/", centerRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

@@ -23,6 +23,7 @@ model User {
   dropdowns Dropdown[]
   invoices Invoice[]
   payments Payment[]
+  centers Center[]
   users   Json?
   roleId Int
   adminId Int?
@@ -150,4 +151,22 @@ model Event{
   addedBy Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+}
+
+model Center {
+  id Int @id @default(autoincrement())
+  centerName String
+  ownerName String
+  mobileNumber String
+  location String
+  userType String
+  emailId String
+  password String
+  branchId String
+  status Int?
+  addedBy Int? 
+  user User? @relation(fields: [addedBy], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+
 }
