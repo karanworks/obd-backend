@@ -19,10 +19,6 @@ model User {
   email    String @unique
   password String
   token    Int      @default(0)
-  leads Lead[]
-  dropdowns Dropdown[]
-  invoices Invoice[]
-  payments Payment[]
   centers Center[]
   bankCodes BankCode[]
   users   Json?
@@ -82,74 +78,6 @@ model RoleAssign{
   id Int @id @default(autoincrement())
   roleId Int
   userId Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-}
-
-
-
-model Dropdown{
-  id Int @id @default(autoincrement())
-  dropdownName String?
-  category String
-  user User? @relation(fields: [addedBy], references: [id])
-  addedBy Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-}
-
-model Invoice{
-  id Int @id @default(autoincrement())
-  clientName String @unique
-  totalAmount String
-  balance Int?
-  paymentDate String?
-  paymentAmount String?
-  paymentDueDate String
-  payments Payment[]
-  user User? @relation(fields: [addedBy], references: [id])
-  addedBy Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-}
-
-
-model Payment{
-  id Int @id @default(autoincrement())
-  invoiceId Int?
-  invoice Invoice? @relation(fields: [invoiceId], references: [id])
-  paymentAmount String
-  paymentDate String
-  user User? @relation(fields: [addedBy], references: [id])
-  addedBy Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-}
-
-
-model Lead{
-    id Int @id @default(autoincrement())
-    clientName String 
-    mobileNo String @unique
-    projectGenre String
-    projectStatus String
-    projectDueDate String
-    youtubeLink String?
-    status Int?
-    user User? @relation(fields: [addedBy], references: [id])
-    addedBy Int
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now())
-}
-
-model Event{
-  id Int @id @default(autoincrement())
-  clientName String
-  eventName String
-  eventDate String
-  leadMobileNo String
-  status Int?
-  addedBy Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }

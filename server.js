@@ -8,11 +8,7 @@ const homeRouter = require("./routes/home");
 const adminAuthRouter = require("./routes/adminAuth");
 const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
-const leadRouter = require("./routes/lead");
-const dropdownRouter = require("./routes/dropdown");
-const invoiceRouter = require("./routes/invoice");
-const paymentRouter = require("./routes/payment");
-const eventRouter = require("./routes/event");
+
 const centerRouter = require("./routes/center");
 const bankCodeRouter = require("./routes/bankCode");
 
@@ -53,11 +49,6 @@ app.use("/", adminAuthRouter);
 app.use("/", adminUsersRouter);
 app.use("/", roleRouter);
 app.use("/", mappingRouter);
-app.use("/", leadRouter);
-app.use("/", dropdownRouter);
-app.use("/", invoiceRouter);
-app.use("/", paymentRouter);
-app.use("/", eventRouter);
 app.use("/", centerRouter);
 app.use("/", bankCodeRouter);
 
