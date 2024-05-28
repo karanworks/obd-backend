@@ -32,7 +32,7 @@ class CenterController {
           .json({ message: "user not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while loggin in user, get method ", error);
+      console.log("error while getting centers ", error);
     }
   }
 

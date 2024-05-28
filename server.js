@@ -14,6 +14,7 @@ const invoiceRouter = require("./routes/invoice");
 const paymentRouter = require("./routes/payment");
 const eventRouter = require("./routes/event");
 const centerRouter = require("./routes/center");
+const bankCodeRouter = require("./routes/bankCode");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -58,6 +59,7 @@ app.use("/", invoiceRouter);
 app.use("/", paymentRouter);
 app.use("/", eventRouter);
 app.use("/", centerRouter);
+app.use("/", bankCodeRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

@@ -24,6 +24,7 @@ model User {
   invoices Invoice[]
   payments Payment[]
   centers Center[]
+  bankCodes BankCode[]
   users   Json?
   roleId Int
   adminId Int?
@@ -169,4 +170,17 @@ model Center {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 
+}
+
+model BankCode{
+  id Int @id @default(autoincrement())
+  centerName String
+  bankName String
+  userNameCode String
+  password String
+  userStatus String?
+  addedBy Int? 
+  user User? @relation(fields: [addedBy], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
 }
