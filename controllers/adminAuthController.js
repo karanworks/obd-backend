@@ -11,6 +11,8 @@ class AdminAuthController {
       const { name, email, password, roleId } = req.body;
       const userIp = req.socket.remoteAddress;
 
+      console.log("CENTER REGISTER BODY ->", req.body);
+
       const loggedInUser = await getLoggedInUser(req, res);
 
       const alreadyRegistered = await prisma.user.findFirst({
@@ -24,7 +26,7 @@ class AdminAuthController {
           if (alreadyRegistered.email === email) {
             response.error(
               res,
-              "User already registered with this CRM Email.",
+              "User already registered with this Email.",
               alreadyRegistered
             );
           }
@@ -43,7 +45,7 @@ class AdminAuthController {
           // Assigning role
           await prisma.roleAssign.create({
             data: {
-              roleId,
+              roleId: parseInt(roleId),
               userId: newUser.id,
             },
           });

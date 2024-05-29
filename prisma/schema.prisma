@@ -112,3 +112,19 @@ model BankCode{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
+
+model CenterUser{
+  id Int @id @default(autoincrement())
+  name String
+  email String
+  password String
+  location String
+  branchId String
+  userType String
+  status Int
+  addedBy Int? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+
+
+}
