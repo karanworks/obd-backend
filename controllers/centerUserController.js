@@ -4,6 +4,7 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const getMenus = require("../utils/getMenus");
 const getToken = require("../utils/getToken");
+const { parse } = require("path");
 
 class CenterUserController {
   async centerUsersGet(req, res) {
@@ -20,10 +21,15 @@ class CenterUserController {
           },
         });
 
+        const users = await prisma.centerUser.findMany({
+          where: { status: 1 },
+        });
+
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Center User fetched!", {
           ...adminDataWithoutPassword,
+          users,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
@@ -38,20 +44,39 @@ class CenterUserController {
 
   async centerUserCreatePost(req, res) {
     try {
-      const { name, emailId, password, location, branchId, userType } =
-        req.body;
+      const {
+        name,
+        email,
+        password,
+        location,
+        centerName,
+        mobileNumber,
+        age,
+        aadharNumber,
+        panNo,
+        branchId,
+        userType,
+      } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
+
+      const { centerId } = req.params;
 
       if (loggedInUser) {
         const newUser = await prisma.centerUser.create({
           data: {
             name,
-            emailId,
+            email,
             password,
             location,
+            centerName,
+            mobileNumber,
+            age,
+            aadharNumber,
+            panNo,
             branchId,
-            userType: "NEED TO CHANGE LATER",
+            centerId: parseInt(centerId),
+            userType: parseInt(userType),
             status: 1,
             addedBy: loggedInUser.id,
           },
@@ -67,45 +92,68 @@ class CenterUserController {
   async centerUserUpdatePatch(req, res) {
     try {
       const {
-        centerName,
-        ownerName,
-        mobileNumber,
-        emailId,
+        name,
+        email,
+        password,
         location,
+        centerName,
+        mobileNumber,
+        age,
+        aadharNumber,
+        panNo,
         branchId,
         userType,
-        password,
+        status,
       } = req.body;
 
-      const { centerId } = req.params;
+      const { centerId, centerUserId } = req.params;
 
-      // finding user from id
       const centerUserFound = await prisma.centerUser.findFirst({
         where: {
-          id: parseInt(centerId),
+          id: parseInt(centerUserId),
         },
       });
 
       if (centerUserFound) {
-        const updatedCenter = await prisma.centerUser.update({
-          where: {
-            id: parseInt(centerId),
-          },
-          data: {
-            centerName,
-            ownerName,
-            mobileNumber,
-            emailId,
-            location,
-            branchId,
-            userType,
-            password,
-          },
-        });
+        if (status === 0) {
+          const updatedCenterUser = await prisma.centerUser.update({
+            where: {
+              id: centerUserFound.id,
+            },
+            data: {
+              status,
+            },
+          });
 
-        response.success(res, "Center user updated successfully!", {
-          updatedCenter,
-        });
+          return response.success(res, "Center user removed successfully!", {
+            updatedCenterUser,
+          });
+        } else {
+          const updatedCenterUser = await prisma.centerUser.update({
+            where: {
+              id: centerUserFound.id,
+            },
+            data: {
+              name,
+              email,
+              password,
+              location,
+              centerName,
+              mobileNumber,
+              age,
+              aadharNumber,
+              panNo,
+              branchId,
+              centerId: parseInt(centerId),
+              userType: parseInt(userType),
+              status,
+            },
+          });
+
+          response.success(res, "Center user updated successfully!", {
+            updatedCenterUser,
+          });
+        }
       } else {
         response.error(res, "Center user not found!");
       }
@@ -114,34 +162,34 @@ class CenterUserController {
     }
   }
 
-  async centerUserRemoveDelete(req, res) {
-    try {
-      const { centerId } = req.params;
+  // async centerUserRemoveDelete(req, res) {
+  //   try {
+  //     const { centerId, centerUserId } = req.params;
 
-      // finding user from userId
-      const centerUserFound = await prisma.centerUser.findFirst({
-        where: {
-          id: parseInt(centerId),
-        },
-      });
+  //     // finding user from userId
+  //     const centerUserFound = await prisma.centerUser.findFirst({
+  //       where: {
+  //         id: parseInt(centerUserId),
+  //       },
+  //     });
 
-      if (centerUserFound) {
-        const deletedCenterUser = await prisma.centerUser.delete({
-          where: {
-            id: parseInt(centerId),
-          },
-        });
+  //     if (centerUserFound) {
+  //       const deletedCenterUser = await prisma.centerUser.delete({
+  //         where: {
+  //           id: centerUserFound.id,
+  //         },
+  //       });
 
-        response.success(res, "Center user deleted successfully!", {
-          deletedCenterUser,
-        });
-      } else {
-        response.error(res, "Center does not exist! ");
-      }
-    } catch (error) {
-      console.log("error while deleting center user ", error);
-    }
-  }
+  //       response.success(res, "Center user deleted successfully!", {
+  //         deletedCenterUser,
+  //       });
+  //     } else {
+  //       response.error(res, "Center does not exist! ");
+  //     }
+  //   } catch (error) {
+  //     console.log("error while deleting center user ", error);
+  //   }
+  // }
 }
 
 module.exports = new CenterUserController();

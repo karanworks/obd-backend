@@ -97,7 +97,6 @@ model Center {
   user User? @relation(fields: [addedBy], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
-
 }
 
 model BankCode{
@@ -108,6 +107,7 @@ model BankCode{
   password String
   userStatus String?
   addedBy Int? 
+  status Int @default(1)
   user User? @relation(fields: [addedBy], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
@@ -118,10 +118,16 @@ model CenterUser{
   name String
   email String
   password String
+  mobileNumber String
+  centerId Int
+  centerName String
+  age Int
+  aadharNumber String
+  panNo String
   location String
   branchId String
-  userType String
-  status Int
+  userType Int
+  status Int @default(1)
   addedBy Int? 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  

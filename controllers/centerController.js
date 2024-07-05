@@ -15,8 +15,12 @@ class CenterController {
           where: {
             token: parseInt(token),
           },
-          include: {
-            centers: true,
+        });
+
+        const centers = await prisma.center.findMany({
+          where: {
+            addedBy: loggedInUser.id,
+            status: 1,
           },
         });
 
@@ -24,6 +28,7 @@ class CenterController {
 
         response.success(res, "Centers fetched!", {
           ...adminDataWithoutPassword,
+          centers,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
@@ -85,6 +90,7 @@ class CenterController {
         branchId,
         userType,
         password,
+        status,
       } = req.body;
 
       const { centerId } = req.params;
@@ -97,25 +103,42 @@ class CenterController {
       });
 
       if (centerFound) {
-        const updatedCenter = await prisma.center.update({
-          where: {
-            id: parseInt(centerId),
-          },
-          data: {
-            centerName,
-            ownerName,
-            mobileNumber,
-            emailId,
-            location,
-            branchId,
-            userType,
-            password,
-          },
-        });
+        if (status === 0) {
+          const updatedCenter = await prisma.center.update({
+            where: {
+              id: parseInt(centerId),
+            },
 
-        response.success(res, "Center updated successfully!", {
-          updatedCenter,
-        });
+            data: {
+              status: 0,
+            },
+          });
+
+          response.success(res, "Center removed successfully!", {
+            updatedCenter,
+          });
+        } else {
+          const updatedCenter = await prisma.center.update({
+            where: {
+              id: parseInt(centerId),
+            },
+
+            data: {
+              centerName,
+              ownerName,
+              mobileNumber,
+              emailId,
+              location,
+              branchId,
+              userType,
+              password,
+            },
+          });
+
+          response.success(res, "Center updated successfully!", {
+            updatedCenter,
+          });
+        }
       } else {
         response.error(res, "Center not found!");
       }

@@ -13,8 +13,12 @@ class BankCodeController {
           where: {
             token: parseInt(token),
           },
-          include: {
-            bankCodes: true,
+        });
+
+        const bankCodes = await prisma.bankCode.findMany({
+          where: {
+            addedBy: loggedInUser.id,
+            status: 1,
           },
         });
 
@@ -22,6 +26,7 @@ class BankCodeController {
 
         response.success(res, "Bank Codes fetched!", {
           ...adminDataWithoutPassword,
+          bankCodes,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
@@ -60,7 +65,7 @@ class BankCodeController {
 
   async bankCodeUpdatePatch(req, res) {
     try {
-      const { centerName, bankName, userNameCode, password } = req.body;
+      const { centerName, bankName, userNameCode, password, status } = req.body;
 
       const { bankCodeId } = req.params;
 
@@ -71,21 +76,36 @@ class BankCodeController {
       });
 
       if (bankCodeFound) {
-        const updatedBankCode = await prisma.bankCode.update({
-          where: {
-            id: parseInt(bankCodeId),
-          },
-          data: {
-            centerName,
-            bankName,
-            userNameCode,
-            password,
-          },
-        });
+        if (status === 0) {
+          const updatedBankCode = await prisma.bankCode.update({
+            where: {
+              id: parseInt(bankCodeId),
+            },
+            data: {
+              status: 0,
+            },
+          });
 
-        response.success(res, "Bank Code updated successfully!", {
-          updatedBankCode,
-        });
+          response.success(res, "Bank Code removed successfully!", {
+            updatedBankCode,
+          });
+        } else {
+          const updatedBankCode = await prisma.bankCode.update({
+            where: {
+              id: parseInt(bankCodeId),
+            },
+            data: {
+              centerName,
+              bankName,
+              userNameCode,
+              password,
+            },
+          });
+
+          response.success(res, "Bank Code updated successfully!", {
+            updatedBankCode,
+          });
+        }
       } else {
         response.error(res, "Bank Code not found!");
       }
@@ -94,33 +114,33 @@ class BankCodeController {
     }
   }
 
-  async bankCodeRemoveDelete(req, res) {
-    try {
-      const { bankCodeId } = req.params;
+  // async bankCodeRemoveDelete(req, res) {
+  //   try {
+  //     const { bankCodeId } = req.params;
 
-      const bankCodeFound = await prisma.bankCode.findFirst({
-        where: {
-          id: parseInt(bankCodeId),
-        },
-      });
+  //     const bankCodeFound = await prisma.bankCode.findFirst({
+  //       where: {
+  //         id: parseInt(bankCodeId),
+  //       },
+  //     });
 
-      if (bankCodeFound) {
-        const deletedBankCode = await prisma.bankCode.delete({
-          where: {
-            id: parseInt(bankCodeId),
-          },
-        });
+  //     if (bankCodeFound) {
+  //       const deletedBankCode = await prisma.bankCode.delete({
+  //         where: {
+  //           id: parseInt(bankCodeId),
+  //         },
+  //       });
 
-        response.success(res, "bank Code deleted successfully!", {
-          deletedBankCode,
-        });
-      } else {
-        response.error(res, "bank codes does not exist! ");
-      }
-    } catch (error) {
-      console.log("error while deleting bank code ", error);
-    }
-  }
+  //       response.success(res, "bank Code deleted successfully!", {
+  //         deletedBankCode,
+  //       });
+  //     } else {
+  //       response.error(res, "bank codes does not exist! ");
+  //     }
+  //   } catch (error) {
+  //     console.log("error while deleting bank code ", error);
+  //   }
+  // }
 }
 
 module.exports = new BankCodeController();

@@ -8,9 +8,9 @@ BankCodeRouter.patch(
   "/bank-code/:bankCodeId/edit",
   BankCodeController.bankCodeUpdatePatch
 );
-BankCodeRouter.delete(
-  "/bank-code/:bankCodeId/delete",
-  BankCodeController.bankCodeRemoveDelete
-);
+// BankCodeRouter.delete(
+//   "/bank-code/:bankCodeId/delete",
+//   BankCodeController.bankCodeRemoveDelete
+// );
 
 module.exports = BankCodeRouter;
