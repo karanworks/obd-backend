@@ -11,6 +11,10 @@ const mappingRouter = require("./routes/mapping");
 const centerRouter = require("./routes/center");
 const bankCodeRouter = require("./routes/bankCode");
 const centerUser = require("./routes/centerUser");
+const formRouter = require("./routes/form");
+const formStatusRouter = require("./routes/formStatus");
+const applicationReportRouter = require("./routes/applicationReport");
+const pendingFormRouter = require("./routes/pendingForms");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -52,6 +56,11 @@ app.use("/", mappingRouter);
 app.use("/", centerRouter);
 app.use("/", centerUser);
 app.use("/", bankCodeRouter);
+app.use("/", formRouter);
+app.use("/", formStatusRouter);
+app.use("/", formStatusRouter);
+app.use("/", applicationReportRouter);
+app.use("/", pendingFormRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

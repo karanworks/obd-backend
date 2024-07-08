@@ -11,8 +11,6 @@ class AdminAuthController {
       const { name, email, password, roleId } = req.body;
       const userIp = req.socket.remoteAddress;
 
-      console.log("CENTER REGISTER BODY ->", req.body);
-
       const loggedInUser = await getLoggedInUser(req, res);
 
       const alreadyRegistered = await prisma.user.findFirst({
@@ -92,10 +90,10 @@ class AdminAuthController {
         response.error(res, "No user found with this email!");
       } else if (password === userFound.password) {
         // checking if user is active to prevent him logging again
-        if (userFound.isActive) {
-          response.error(res, "You were not logged out properly!");
-          return;
-        }
+        // if (userFound.isActive) {
+        //   response.error(res, "You were not logged out properly!");
+        //   return;
+        // }
 
         // generates a number between 1000 and 10000 to be used as token
         const loginToken = Math.floor(

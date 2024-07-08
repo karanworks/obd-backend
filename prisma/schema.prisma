@@ -132,5 +132,38 @@ model CenterUser{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 
+}
+
+model Form{
+  id Int @id @default(autoincrement())
+  fullName String
+  mobileNo String
+  email String
+  dob String
+  panNo String
+  fatherName String
+  motherName String
+  disposition String // this needs to be changed later
+  currentAddress String
+  pinCode Int
+  companyName String
+  companyAddress String
+  income Int
+  bankName String
+  clientType String
+  addedBy Int
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
+
+model FormStatus{
+  id Int @id @default(autoincrement())
+  formId Int
+  formStatus String
+  applicationNo String
+  addedBy Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
 
 }
