@@ -15,25 +15,52 @@ class PendingFormController {
           },
         });
 
-        if (loggedInUser.roleId === 1) {
-          const forms = await prisma.form.findMany({
-            where: {
-              status: 1,
-            },
-          });
+        const formStatusForPending = await prisma.formStatus.findMany({
+          where: {
+            OR: [{ formStatus: "Link Sent" }, { formStatus: "" }],
+          },
+        });
+        const formStatusForUpdated = await prisma.formStatus.findMany({
+          where: {
+            OR: [
+              { formStatus: "Declined" },
+              { formStatus: "Already Applied" },
+              { formStatus: "Re-Process" },
+              { formStatus: "Client Declined" },
+            ],
+          },
+        });
 
-          const formWithStatusAndApplicationNo = await Promise.all(
-            forms.map(async (form) => {
-              const formStatus = await prisma.formStatus.findFirst({
+        if (loggedInUser.roleId === 1) {
+          const formWithStatusAndApplicationNoForPending = await Promise.all(
+            formStatusForPending.map(async (fStatus) => {
+              const form = await prisma.form.findFirst({
                 where: {
-                  formId: form.id,
+                  id: fStatus.formId,
+                  status: 1,
                 },
               });
 
               return {
                 ...form,
-                applicationNo: formStatus.applicationNo,
-                formStatus: formStatus.formStatus,
+                formStatus: fStatus.formStatus,
+                applicationNo: fStatus.applicationNo,
+              };
+            })
+          );
+          const formWithStatusAndApplicationNoForUpdated = await Promise.all(
+            formStatusForUpdated.map(async (fStatus) => {
+              const form = await prisma.form.findFirst({
+                where: {
+                  id: fStatus.formId,
+                  status: 1,
+                },
+              });
+
+              return {
+                ...form,
+                formStatus: fStatus.formStatus,
+                applicationNo: fStatus.applicationNo,
               };
             })
           );
@@ -42,28 +69,41 @@ class PendingFormController {
 
           response.success(res, "Forms fetched!", {
             ...adminDataWithoutPassword,
-            forms: formWithStatusAndApplicationNo,
+            pendingForms: formWithStatusAndApplicationNoForPending,
+            updatedForms: formWithStatusAndApplicationNoForUpdated,
           });
         } else {
-          const forms = await prisma.form.findMany({
-            where: {
-              addedBy: loggedInUser.id,
-              status: 1,
-            },
-          });
-
-          const formWithStatusAndApplicationNo = await Promise.all(
-            forms.map(async (form) => {
-              const formStatus = await prisma.formStatus.findFirst({
+          const formWithStatusAndApplicationNoForPending = await Promise.all(
+            formStatusForPending.map(async (fStatus) => {
+              const form = await prisma.form.findFirst({
                 where: {
-                  formId: form.id,
+                  id: fStatus.formId,
+                  status: 1,
+                  addedBy: loggedInUser.id,
                 },
               });
 
               return {
                 ...form,
-                applicationNo: formStatus.applicationNo,
-                formStatus: formStatus.formStatus,
+                formStatus: fStatus.formStatus,
+                applicationNo: fStatus.applicationNo,
+              };
+            })
+          );
+          const formWithStatusAndApplicationNoForUpdated = await Promise.all(
+            formStatusForUpdated.map(async (fStatus) => {
+              const form = await prisma.form.findFirst({
+                where: {
+                  id: fStatus.formId,
+                  status: 1,
+                  addedBy: loggedInUser.id,
+                },
+              });
+
+              return {
+                ...form,
+                formStatus: fStatus.formStatus,
+                applicationNo: fStatus.applicationNo,
               };
             })
           );
@@ -72,7 +112,8 @@ class PendingFormController {
 
           response.success(res, "Forms fetched!", {
             ...adminDataWithoutPassword,
-            forms: formWithStatusAndApplicationNo,
+            pendingForms: formWithStatusAndApplicationNoForPending,
+            updatedForms: formWithStatusAndApplicationNoForUpdated,
           });
         }
       } else {
