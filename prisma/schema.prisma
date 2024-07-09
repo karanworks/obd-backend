@@ -19,13 +19,11 @@ model User {
   email    String @unique
   password String
   token    Int      @default(0)
-  centers Center[]
-  bankCodes BankCode[]
-  users   Json?
   roleId Int
   adminId Int?
   isActive Int      @default(0)
   userIp   String
+  status Int @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
@@ -94,7 +92,6 @@ model Center {
   branchId String
   status Int?
   addedBy Int? 
-  user User? @relation(fields: [addedBy], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
@@ -108,7 +105,6 @@ model BankCode{
   userStatus String?
   addedBy Int? 
   status Int @default(1)
-  user User? @relation(fields: [addedBy], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
@@ -131,7 +127,6 @@ model CenterUser{
   addedBy Int? 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
-
 }
 
 model Form{

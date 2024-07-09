@@ -16,26 +16,42 @@ class CenterUserController {
           where: {
             token: parseInt(token),
           },
-          include: {
-            centers: true,
+        });
+
+        const centers = await prisma.center.findMany({
+          where: {
+            // addedBy: loggedInUser.id,
+            status: 1,
           },
         });
 
-        const users = await prisma.centerUser.findMany({
-          where: { status: 1 },
-        });
+        let users;
+        if (loggedInUser.roleId === 1) {
+          users = await prisma.centerUser.findMany({
+            where: { status: 1 },
+          });
+        } else {
+          users = await prisma.centerUser.findMany({
+            where: {
+              addedBy: loggedInUser.id,
+              status: 1,
+            },
+          });
+        }
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Center User fetched!", {
           ...adminDataWithoutPassword,
           users,
+          centers,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
-        res
-          .status(401)
-          .json({ message: "user not already logged in.", status: "failure" });
+        res.status(401).json({
+          message: "center user not already logged in.",
+          status: "failure",
+        });
       }
     } catch (error) {
       console.log("error while getting centers ", error);

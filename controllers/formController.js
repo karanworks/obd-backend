@@ -77,6 +77,12 @@ class FormController {
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {
+        const centerUser = await prisma.centerUser.findFirst({
+          where: {
+            email: loggedInUser.email,
+          },
+        });
+
         const formCreated = await prisma.form.create({
           data: {
             disposition,
@@ -94,7 +100,7 @@ class FormController {
             companyAddress,
             income,
             panNo,
-            addedBy: loggedInUser.id,
+            addedBy: centerUser.id,
           },
         });
 
@@ -103,7 +109,7 @@ class FormController {
             formId: formCreated.id,
             applicationNo: "",
             formStatus: "",
-            addedBy: loggedInUser.id,
+            addedBy: centerUser.id,
           },
         });
 

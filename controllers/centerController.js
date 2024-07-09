@@ -19,7 +19,6 @@ class CenterController {
 
         const centers = await prisma.center.findMany({
           where: {
-            addedBy: loggedInUser.id,
             status: 1,
           },
         });
@@ -55,6 +54,8 @@ class CenterController {
       } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
+
+      console.log("USER TYPE WHILE CREATING CENTER ->", userType);
 
       if (loggedInUser) {
         const newUser = await prisma.center.create({

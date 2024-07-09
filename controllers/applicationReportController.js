@@ -9,23 +9,38 @@ class ApplicationReportController {
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {
-        const allApplicationReports = await prisma.formStatus.findMany({});
+        let allApplicationReports;
+
+        if (loggedInUser.roleId === 1) {
+          allApplicationReports = await prisma.formStatus.findMany({});
+        } else {
+          const centerUser = await prisma.centerUser.findFirst({
+            where: {
+              email: loggedInUser.email,
+            },
+          });
+
+          allApplicationReports = await prisma.formStatus.findMany({
+            where: {
+              addedBy: centerUser.id,
+            },
+          });
+        }
 
         const applicationReportWithDetails = await Promise.all(
           allApplicationReports?.map(async (report) => {
             const form = await prisma.form.findFirst({
               where: {
                 id: report.formId,
+                status: 1,
               },
             });
 
             const formUser = await prisma.centerUser.findFirst({
               where: {
-                id: form.addedBy,
+                id: form?.addedBy,
               },
             });
-
-            console.log("FORM USER ->", form.addedBy);
 
             return {
               formId: report.formId,

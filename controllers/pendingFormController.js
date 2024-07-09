@@ -56,7 +56,7 @@ class PendingFormController {
             forms.map(async (form) => {
               const formStatus = await prisma.formStatus.findFirst({
                 where: {
-                  formId: forms,
+                  formId: form.id,
                 },
               });
 
