@@ -6,5 +6,9 @@ ApplicationReportRouter.get(
   "/application-report",
   ApplicationReportController.applicationReportGet
 );
+ApplicationReportRouter.post(
+  "/application-report/filter",
+  ApplicationReportController.applicationReportFilter
+);
 
 module.exports = ApplicationReportRouter;
