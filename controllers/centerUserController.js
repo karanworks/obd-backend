@@ -25,6 +25,9 @@ class CenterUserController {
           },
         });
 
+        // these center users are going to be used while filling the form so that employee can be selected, for more info go to form filling page
+        const centerUsers = await prisma.centerUser.findMany({});
+
         let users;
         if (loggedInUser.roleId === 1) {
           users = await prisma.centerUser.findMany({
@@ -45,6 +48,7 @@ class CenterUserController {
           ...adminDataWithoutPassword,
           users,
           centers,
+          centerUsers,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times

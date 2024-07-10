@@ -57,7 +57,7 @@ class FormController {
   async formCreatePost(req, res) {
     try {
       const {
-        disposition,
+        employeeName,
         bankName,
         clientType,
         fullName,
@@ -85,7 +85,7 @@ class FormController {
 
         const formCreated = await prisma.form.create({
           data: {
-            disposition,
+            employeeName,
             bankName,
             clientType,
             fullName,

@@ -138,7 +138,7 @@ model Form{
   panNo String
   fatherName String
   motherName String
-  disposition String // this needs to be changed later
+  employeeName String
   currentAddress String
   pinCode Int
   companyName String
@@ -150,6 +150,10 @@ model Form{
   status Int @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
+
+
+  @@index([employeeName])
+  @@index([bankName])
 }
 
 model FormStatus{
