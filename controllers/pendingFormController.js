@@ -166,6 +166,12 @@ class PendingFormController {
                   OR: [
                     { fullName: { contains: searchQuery } },
                     { bankName: { contains: searchQuery } },
+                    {
+                      createdAt: {
+                        gte: new Date(date?.length > 0 && date[0]),
+                        lte: new Date(date?.length > 0 && date[1]),
+                      },
+                    },
                   ],
                 },
               });
@@ -188,6 +194,12 @@ class PendingFormController {
                   OR: [
                     { fullName: { contains: searchQuery } },
                     { bankName: { contains: searchQuery } },
+                    {
+                      createdAt: {
+                        gte: new Date(date?.length > 0 && date[0]),
+                        lte: new Date(date?.length > 0 && date[1]),
+                      },
+                    },
                   ],
                 },
               });
