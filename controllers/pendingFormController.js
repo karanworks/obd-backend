@@ -17,7 +17,14 @@ class PendingFormController {
 
         const formStatusForPending = await prisma.formStatus.findMany({
           where: {
-            OR: [{ formStatus: "Link Sent" }, { formStatus: "" }],
+            OR: [
+              { formStatus: "Link Sent" },
+              { formStatus: "" },
+              { formStatus: "Shared To Bank" },
+            ],
+          },
+          orderBy: {
+            createdAt: "asc",
           },
         });
         const formStatusForUpdated = await prisma.formStatus.findMany({
@@ -29,38 +36,64 @@ class PendingFormController {
               { formStatus: "Client Declined" },
             ],
           },
+          orderBy: {
+            createdAt: "asc",
+          },
         });
 
         if (loggedInUser.roleId === 1) {
           const formWithStatusAndApplicationNoForPending = await Promise.all(
             formStatusForPending.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
-                where: {
-                  id: fStatus.formId,
-                  status: 1,
-                },
-              });
+              let form;
+
+              if (fStatus.formType === "Credit Card") {
+                form = await prisma.creditCardForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
+              } else if (fStatus.formType === "Loan") {
+                form = await prisma.loanForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
+              }
 
               return {
                 ...form,
                 formStatus: fStatus.formStatus,
                 applicationNo: fStatus.applicationNo,
+                formType: fStatus.formType,
               };
             })
           );
           const formWithStatusAndApplicationNoForUpdated = await Promise.all(
             formStatusForUpdated.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
-                where: {
-                  id: fStatus.formId,
-                  status: 1,
-                },
-              });
+              let form;
+              if (fStatus.formType === "Credit Card") {
+                form = await prisma.creditCardForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
+              } else if (fStatus.formType === "Loan") {
+                form = await prisma.loanForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
+              }
 
               return {
                 ...form,
                 formStatus: fStatus.formStatus,
                 applicationNo: fStatus.applicationNo,
+                formType: fStatus.formType,
               };
             })
           );
@@ -75,7 +108,7 @@ class PendingFormController {
         } else {
           const formWithStatusAndApplicationNoForPending = await Promise.all(
             formStatusForPending.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
+              const form = await prisma.creditCardForm.findFirst({
                 where: {
                   id: fStatus.formId,
                   status: 1,
@@ -92,7 +125,7 @@ class PendingFormController {
           );
           const formWithStatusAndApplicationNoForUpdated = await Promise.all(
             formStatusForUpdated.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
+              const form = await prisma.creditCardForm.findFirst({
                 where: {
                   id: fStatus.formId,
                   status: 1,
@@ -159,7 +192,7 @@ class PendingFormController {
         if (loggedInUser.roleId === 1) {
           const formWithStatusAndApplicationNoForPending = await Promise.all(
             formStatusForPending.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
+              const form = await prisma.creditCardForm.findFirst({
                 where: {
                   id: fStatus.formId,
                   status: 1,
@@ -187,7 +220,7 @@ class PendingFormController {
           ).then((res) => res.filter(Boolean));
           const formWithStatusAndApplicationNoForUpdated = await Promise.all(
             formStatusForUpdated.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
+              const form = await prisma.creditCardForm.findFirst({
                 where: {
                   id: fStatus.formId,
                   status: 1,
@@ -224,7 +257,7 @@ class PendingFormController {
         } else {
           const formWithStatusAndApplicationNoForPending = await Promise.all(
             formStatusForPending.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
+              const form = await prisma.creditCardForm.findFirst({
                 where: {
                   id: fStatus.formId,
                   status: 1,
@@ -243,7 +276,7 @@ class PendingFormController {
           );
           const formWithStatusAndApplicationNoForUpdated = await Promise.all(
             formStatusForUpdated.map(async (fStatus) => {
-              const form = await prisma.form.findFirst({
+              const form = await prisma.creditCardForm.findFirst({
                 where: {
                   id: fStatus.formId,
                   status: 1,

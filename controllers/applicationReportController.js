@@ -29,7 +29,7 @@ class ApplicationReportController {
 
         const applicationReportWithDetails = await Promise.all(
           allApplicationReports?.map(async (report) => {
-            const form = await prisma.form.findFirst({
+            const form = await prisma.creditCardForm.findFirst({
               where: {
                 id: report.formId,
                 status: 1,
@@ -69,20 +69,7 @@ class ApplicationReportController {
         let allApplicationReports;
 
         if (loggedInUser.roleId === 1) {
-          allApplicationReports = await prisma.formStatus.findMany({
-            where: {
-              OR: [
-                {
-                  applicationNo: { contains: searchQuery },
-                },
-              ],
-            },
-          });
-
-          // If no results found, fetch all records
-          if (allApplicationReports.length === 0) {
-            allApplicationReports = await prisma.formStatus.findMany();
-          }
+          allApplicationReports = await prisma.formStatus.findMany({});
         } else {
           const centerUser = await prisma.centerUser.findFirst({
             where: {
@@ -93,22 +80,13 @@ class ApplicationReportController {
           allApplicationReports = await prisma.formStatus.findMany({
             where: {
               addedBy: centerUser.id,
-              OR: [{ applicationNo: { contains: searchQuery } }],
             },
           });
-
-          if (allApplicationReports.length === 0) {
-            allApplicationReports = await prisma.formStatus.findMany({
-              where: {
-                addedBy: centerUser.id,
-              },
-            });
-          }
         }
 
         const applicationReportWithDetails = await Promise.all(
           allApplicationReports?.map(async (report) => {
-            const form = await prisma.form.findFirst({
+            const form = await prisma.creditCardForm.findFirst({
               where: {
                 id: report.formId,
                 status: 1,

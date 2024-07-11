@@ -6,6 +6,5 @@ FormStatusRouter.patch(
   "/form/status-update",
   FormStatusController.formStatusUpdatePost
 );
-// FormStatusRouter.patch("/form/update", FormStatusController.formCreatePost);
 
 module.exports = FormStatusRouter;

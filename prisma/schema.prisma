@@ -129,7 +129,7 @@ model CenterUser{
   updatedAt DateTime @default(now())  
 }
 
-model Form{
+model CreditCardForm{
   id Int @id @default(autoincrement())
   fullName String
   mobileNo String
@@ -161,8 +161,26 @@ model FormStatus{
   formId Int
   formStatus String
   applicationNo String
+  formType String
   addedBy Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 
+}
+
+
+model LoanForm{
+  id Int @id @default(autoincrement())
+  employeeType String
+  loanType String
+  fullName String
+  mobileNo String
+  currentAddress String
+  income Int
+  pinCode Int
+  addedBy Int
+  panNo String
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
 }

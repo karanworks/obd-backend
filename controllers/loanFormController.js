@@ -3,8 +3,8 @@ const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 
-class FormController {
-  async formsGet(req, res) {
+class LoanFormController {
+  async loanFormsGet(req, res) {
     try {
       const token = req.cookies.token;
 
@@ -24,7 +24,7 @@ class FormController {
 
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-          response.success(res, "Forms fetched!", {
+          response.success(res, "Credit Card Forms fetched!", {
             ...adminDataWithoutPassword,
             forms,
           });
@@ -38,7 +38,7 @@ class FormController {
 
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-          response.success(res, "Forms fetched!", {
+          response.success(res, "Credit Card Forms fetched!", {
             ...adminDataWithoutPassword,
             forms,
           });
@@ -50,28 +50,22 @@ class FormController {
           .json({ message: "user not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while getting centers ", error);
+      console.log("error while getting loan forms ", error);
     }
   }
 
-  async formCreatePost(req, res) {
+  async loanFormCreatePost(req, res) {
     try {
       const {
-        employeeName,
-        bankName,
-        clientType,
-        fullName,
+        employeeType,
+        loanType,
+        name,
         mobileNo,
-        email,
         currentAddress,
         pinCode,
-        dob,
-        motherName,
-        fatherName,
-        companyName,
-        companyAddress,
         income,
         panNo,
+        formType,
       } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
@@ -83,21 +77,14 @@ class FormController {
           },
         });
 
-        const formCreated = await prisma.form.create({
+        const formCreated = await prisma.loanForm.create({
           data: {
-            employeeName,
-            bankName,
-            clientType,
-            fullName,
+            employeeType,
+            loanType,
+            fullName: name,
             mobileNo,
-            email,
             currentAddress,
             pinCode,
-            dob,
-            motherName,
-            fatherName,
-            companyName,
-            companyAddress,
             income,
             panNo,
             addedBy: centerUser.id,
@@ -109,16 +96,17 @@ class FormController {
             formId: formCreated.id,
             applicationNo: "",
             formStatus: "",
+            formType,
             addedBy: centerUser.id,
           },
         });
 
-        response.success(res, "Form submitted successfully!", formCreated);
+        response.success(res, "Loan Form submitted successfully!", formCreated);
       }
     } catch (error) {
-      console.log("error while form submission ->", error);
+      console.log("error while loan form submission ->", error);
     }
   }
 }
 
-module.exports = new FormController();
+module.exports = new LoanFormController();
