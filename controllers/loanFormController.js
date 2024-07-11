@@ -16,7 +16,7 @@ class LoanFormController {
         });
 
         if (loggedInUser.roleId === 1) {
-          const forms = await prisma.form.findMany({
+          const forms = await prisma.loanForm.findMany({
             where: {
               status: 1,
             },
@@ -29,7 +29,7 @@ class LoanFormController {
             forms,
           });
         } else {
-          const forms = await prisma.form.findMany({
+          const forms = await prisma.loanForm.findMany({
             where: {
               addedBy: loggedInUser.id,
               status: 1,

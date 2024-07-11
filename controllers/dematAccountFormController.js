@@ -3,8 +3,8 @@ const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 
-class InsuranceFormController {
-  async insuranceFormsGet(req, res) {
+class DematAccountFormController {
+  async dematAccountFormsGet(req, res) {
     try {
       const token = req.cookies.token;
 
@@ -16,7 +16,7 @@ class InsuranceFormController {
         });
 
         if (loggedInUser.roleId === 1) {
-          const forms = await prisma.insuranceForm.findMany({
+          const forms = await prisma.dematAccountForm.findMany({
             where: {
               status: 1,
             },
@@ -24,12 +24,12 @@ class InsuranceFormController {
 
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-          response.success(res, "Insurance Forms fetched!", {
+          response.success(res, "Demat account Forms fetched!", {
             ...adminDataWithoutPassword,
             forms,
           });
         } else {
-          const forms = await prisma.insuranceForm.findMany({
+          const forms = await prisma.dematAccountForm.findMany({
             where: {
               addedBy: loggedInUser.id,
               status: 1,
@@ -38,7 +38,7 @@ class InsuranceFormController {
 
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-          response.success(res, "Insurance Forms fetched!", {
+          response.success(res, "Demat account forms fetched!", {
             ...adminDataWithoutPassword,
             forms,
           });
@@ -50,14 +50,13 @@ class InsuranceFormController {
           .json({ message: "user not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while getting insurance forms ", error);
+      console.log("error while getting demat account forms ", error);
     }
   }
-  async insuranceFormCreatePost(req, res) {
+  async dematAccountFormCreatePost(req, res) {
     try {
       const {
         employeeType,
-        insuranceType,
         name,
         mobileNo,
         currentAddress,
@@ -76,10 +75,9 @@ class InsuranceFormController {
           },
         });
 
-        const formCreated = await prisma.insuranceForm.create({
+        const formCreated = await prisma.dematAccountForm.create({
           data: {
             employeeType,
-            insuranceType,
             fullName: name,
             mobileNo,
             currentAddress,
@@ -102,14 +100,14 @@ class InsuranceFormController {
 
         response.success(
           res,
-          "Insurance Form submitted successfully!",
+          "Demat account form submitted successfully!",
           formCreated
         );
       }
     } catch (error) {
-      console.log("error while insurance form submission ->", error);
+      console.log("error while demat account form submission ->", error);
     }
   }
 }
 
-module.exports = new InsuranceFormController();
+module.exports = new DematAccountFormController();

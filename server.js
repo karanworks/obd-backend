@@ -14,6 +14,7 @@ const centerUser = require("./routes/centerUser");
 const loanFormRouter = require("./routes/loanForm");
 const insuranceFormRouter = require("./routes/insuranceForm");
 const creditCardFormRouter = require("./routes/creditCardForm");
+const dematAccountFormRouter = require("./routes/dematAccountForm");
 const formStatusRouter = require("./routes/formStatus");
 const applicationReportRouter = require("./routes/applicationReport");
 const pendingFormRouter = require("./routes/pendingForms");
@@ -64,6 +65,7 @@ app.use("/", applicationReportRouter);
 app.use("/", pendingFormRouter);
 app.use("/", loanFormRouter);
 app.use("/", insuranceFormRouter);
+app.use("/", dematAccountFormRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

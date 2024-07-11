@@ -67,6 +67,13 @@ class PendingFormController {
                     status: 1,
                   },
                 });
+              } else if (fStatus.formType === "Demat Account") {
+                form = await prisma.dematAccountForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
               }
 
               return {
@@ -94,6 +101,20 @@ class PendingFormController {
                     status: 1,
                   },
                 });
+              } else if (fStatus.formType === "Insurance") {
+                form = await prisma.insuranceForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
+              } else if (fStatus.formType === "Demat Account") {
+                form = await prisma.dematAccountForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
               }
 
               return {
@@ -115,35 +136,91 @@ class PendingFormController {
         } else {
           const formWithStatusAndApplicationNoForPending = await Promise.all(
             formStatusForPending.map(async (fStatus) => {
-              const form = await prisma.creditCardForm.findFirst({
-                where: {
-                  id: fStatus.formId,
-                  status: 1,
-                  addedBy: loggedInUser.id,
-                },
-              });
+              let form;
+              if (fStatus.formType === "Credit Card") {
+                form = await prisma.creditCardForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              } else if (fStatus.formType === "Loan") {
+                form = await prisma.loanForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              } else if (fStatus.formType === "Insurance") {
+                form = await prisma.insuranceForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              } else if (fStatus.formType === "Demat Account") {
+                form = await prisma.dematAccountForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              }
 
               return {
                 ...form,
                 formStatus: fStatus.formStatus,
                 applicationNo: fStatus.applicationNo,
+                formType: fStatus.formType,
               };
             })
           );
           const formWithStatusAndApplicationNoForUpdated = await Promise.all(
             formStatusForUpdated.map(async (fStatus) => {
-              const form = await prisma.creditCardForm.findFirst({
-                where: {
-                  id: fStatus.formId,
-                  status: 1,
-                  addedBy: loggedInUser.id,
-                },
-              });
+              let form;
+              if (fStatus.formType === "Credit Card") {
+                form = await prisma.creditCardForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              } else if (fStatus.formType === "Loan") {
+                form = await prisma.loanForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              } else if (fStatus.formType === "Insurance") {
+                form = await prisma.insuranceForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              } else if (fStatus.formType === "Demat Account") {
+                form = await prisma.dematAccountForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                    addedBy: loggedInUser.id,
+                  },
+                });
+              }
 
               return {
                 ...form,
                 formStatus: fStatus.formStatus,
                 applicationNo: fStatus.applicationNo,
+                formStatus: fStatus.formStatus,
               };
             })
           );

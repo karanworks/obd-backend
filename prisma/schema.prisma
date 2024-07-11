@@ -200,3 +200,27 @@ model InsuranceForm{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
+model DematAccountForm{
+  id Int @id @default(autoincrement())
+  employeeType String
+  fullName String
+  mobileNo String
+  currentAddress String
+  income Int
+  pinCode Int
+  addedBy Int
+  panNo String
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
+
+model FormPermission {
+  id Int @id @default(autoincrement())
+  roleId Int
+  formId Int
+  addedBy Int
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}

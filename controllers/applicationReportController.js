@@ -29,12 +29,37 @@ class ApplicationReportController {
 
         const applicationReportWithDetails = await Promise.all(
           allApplicationReports?.map(async (report) => {
-            const form = await prisma.creditCardForm.findFirst({
-              where: {
-                id: report.formId,
-                status: 1,
-              },
-            });
+            let form;
+
+            if (report.formType === "Credit Card") {
+              form = await prisma.creditCardForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                },
+              });
+            } else if (report.formType === "Loan") {
+              form = await prisma.loanForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                },
+              });
+            } else if (report.formType === "Insurance") {
+              form = await prisma.insuranceForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                },
+              });
+            } else if (report.formType === "Demat Account") {
+              form = await prisma.dematAccountForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                },
+              });
+            }
 
             const formUser = await prisma.centerUser.findFirst({
               where: {
@@ -46,6 +71,7 @@ class ApplicationReportController {
               formId: report.formId,
               formStatus: report.formStatus,
               applicationNo: report.applicationNo,
+              formType: report.formType,
               ...form,
               user: { ...formUser },
             };
