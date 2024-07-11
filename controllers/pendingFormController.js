@@ -60,6 +60,13 @@ class PendingFormController {
                     status: 1,
                   },
                 });
+              } else if (fStatus.formType === "Insurance") {
+                form = await prisma.insuranceForm.findFirst({
+                  where: {
+                    id: fStatus.formId,
+                    status: 1,
+                  },
+                });
               }
 
               return {

@@ -184,3 +184,19 @@ model LoanForm{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
+
+model InsuranceForm{
+  id Int @id @default(autoincrement())
+  employeeType String
+  insuranceType String
+  fullName String
+  mobileNo String
+  currentAddress String
+  income Int
+  pinCode Int
+  addedBy Int
+  panNo String
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}

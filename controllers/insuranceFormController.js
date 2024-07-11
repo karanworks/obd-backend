@@ -3,8 +3,8 @@ const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 
-class LoanFormController {
-  async loanFormsGet(req, res) {
+class InsuranceFormController {
+  async insuranceFormsGet(req, res) {
     try {
       const token = req.cookies.token;
 
@@ -24,7 +24,7 @@ class LoanFormController {
 
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-          response.success(res, "Loan Forms fetched!", {
+          response.success(res, "Insurance Forms fetched!", {
             ...adminDataWithoutPassword,
             forms,
           });
@@ -38,7 +38,7 @@ class LoanFormController {
 
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-          response.success(res, "Loan Forms fetched!", {
+          response.success(res, "Insurance Forms fetched!", {
             ...adminDataWithoutPassword,
             forms,
           });
@@ -50,15 +50,14 @@ class LoanFormController {
           .json({ message: "user not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while getting loan forms ", error);
+      console.log("error while getting insurance forms ", error);
     }
   }
-
-  async loanFormCreatePost(req, res) {
+  async insuranceFormCreatePost(req, res) {
     try {
       const {
         employeeType,
-        loanType,
+        insuranceType,
         name,
         mobileNo,
         currentAddress,
@@ -77,10 +76,10 @@ class LoanFormController {
           },
         });
 
-        const formCreated = await prisma.loanForm.create({
+        const formCreated = await prisma.insuranceForm.create({
           data: {
             employeeType,
-            loanType,
+            insuranceType,
             fullName: name,
             mobileNo,
             currentAddress,
@@ -101,12 +100,16 @@ class LoanFormController {
           },
         });
 
-        response.success(res, "Loan Form submitted successfully!", formCreated);
+        response.success(
+          res,
+          "Insurance Form submitted successfully!",
+          formCreated
+        );
       }
     } catch (error) {
-      console.log("error while loan form submission ->", error);
+      console.log("error while insurance form submission ->", error);
     }
   }
 }
 
-module.exports = new LoanFormController();
+module.exports = new InsuranceFormController();
