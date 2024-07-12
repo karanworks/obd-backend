@@ -18,6 +18,7 @@ const dematAccountFormRouter = require("./routes/dematAccountForm");
 const formStatusRouter = require("./routes/formStatus");
 const applicationReportRouter = require("./routes/applicationReport");
 const pendingFormRouter = require("./routes/pendingForms");
+const formPermissionsRouter = require("./routes/formPermissions");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -66,6 +67,7 @@ app.use("/", pendingFormRouter);
 app.use("/", loanFormRouter);
 app.use("/", insuranceFormRouter);
 app.use("/", dematAccountFormRouter);
+app.use("/", formPermissionsRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
