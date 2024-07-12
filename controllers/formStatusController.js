@@ -6,7 +6,7 @@ const getLoggedInUser = require("../utils/getLoggedInUser");
 class FormStatusController {
   async formStatusUpdatePost(req, res) {
     try {
-      const { formId, applicationNo, formStatus } = req.body;
+      const { formId, applicationNo, formStatus, formType } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
 
@@ -14,6 +14,7 @@ class FormStatusController {
         const formStatusToUpdate = await prisma.formStatus.findFirst({
           where: {
             formId,
+            formType,
           },
         });
 
