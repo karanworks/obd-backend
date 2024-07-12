@@ -60,12 +60,11 @@ class FormPermissionController {
           if (formPermissionAlreadyExist.status === 0) {
             const formPermissionsUpdated = await prisma.formPermission.update({
               where: {
-                roleId: parseInt(roleId),
-                formId,
-                status: 1,
+                id: formPermissionAlreadyExist.id,
+                status: 0,
               },
               data: {
-                status: 0,
+                status: 1,
               },
             });
 
@@ -77,12 +76,11 @@ class FormPermissionController {
           } else {
             const formPermissionsUpdated = await prisma.formPermission.update({
               where: {
-                roleId: parseInt(roleId),
-                formId,
-                status: 0,
+                id: formPermissionAlreadyExist.id,
+                status: 1,
               },
               data: {
-                status: 1,
+                status: 0,
               },
             });
 
