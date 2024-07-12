@@ -112,17 +112,57 @@ class ApplicationReportController {
 
         const applicationReportWithDetails = await Promise.all(
           allApplicationReports?.map(async (report) => {
-            const form = await prisma.creditCardForm.findFirst({
-              where: {
-                id: report.formId,
-                status: 1,
-                OR: [
-                  { fullName: { contains: searchQuery } },
-                  { mobileNo: { contains: searchQuery } },
-                  { panNo: { contains: searchQuery } },
-                ],
-              },
-            });
+            let form;
+
+            if (report.formType === "Credit Card") {
+              form = await prisma.creditCardForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                  OR: [
+                    { fullName: { contains: searchQuery } },
+                    { mobileNo: { contains: searchQuery } },
+                    { panNo: { contains: searchQuery } },
+                  ],
+                },
+              });
+            } else if (report.formType === "Loan") {
+              form = await prisma.loanForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                  OR: [
+                    { fullName: { contains: searchQuery } },
+                    { mobileNo: { contains: searchQuery } },
+                    { panNo: { contains: searchQuery } },
+                  ],
+                },
+              });
+            } else if (report.formType === "Insurance") {
+              form = await prisma.insuranceForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                  OR: [
+                    { fullName: { contains: searchQuery } },
+                    { mobileNo: { contains: searchQuery } },
+                    { panNo: { contains: searchQuery } },
+                  ],
+                },
+              });
+            } else if (report.formType === "Demat Account") {
+              form = await prisma.dematAccountForm.findFirst({
+                where: {
+                  id: report.formId,
+                  status: 1,
+                  OR: [
+                    { fullName: { contains: searchQuery } },
+                    { mobileNo: { contains: searchQuery } },
+                    { panNo: { contains: searchQuery } },
+                  ],
+                },
+              });
+            }
 
             const formUser = await prisma.centerUser.findFirst({
               where: {
