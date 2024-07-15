@@ -55,8 +55,6 @@ class CenterController {
 
       const loggedInUser = await getLoggedInUser(req, res);
 
-      console.log("USER TYPE WHILE CREATING CENTER ->", userType);
-
       if (loggedInUser) {
         const newUser = await prisma.center.create({
           data: {

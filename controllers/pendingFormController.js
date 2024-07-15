@@ -15,6 +15,12 @@ class PendingFormController {
           },
         });
 
+        const centerUser = await prisma.centerUser.findFirst({
+          where: {
+            email: loggedInUser.email,
+          },
+        });
+
         const formStatusForPending = await prisma.formStatus.findMany({
           where: {
             OR: [
@@ -134,6 +140,9 @@ class PendingFormController {
             updatedForms: formWithStatusAndApplicationNoForUpdated,
           });
         } else {
+          // console.log("PENDING FORMS -> ", formStatusForPending);
+          // console.log("UPDATED FORMS -> ", formStatusForUpdated);
+
           const formWithStatusAndApplicationNoForPending = await Promise.all(
             formStatusForPending.map(async (fStatus) => {
               let form;
@@ -142,7 +151,7 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               } else if (fStatus.formType === "Loan") {
@@ -150,7 +159,7 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               } else if (fStatus.formType === "Insurance") {
@@ -158,7 +167,7 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               } else if (fStatus.formType === "Demat Account") {
@@ -166,17 +175,21 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               }
 
-              return {
-                ...form,
-                formStatus: fStatus.formStatus,
-                applicationNo: fStatus.applicationNo,
-                formType: fStatus.formType,
-              };
+              if (form) {
+                return {
+                  ...form,
+                  formStatus: fStatus.formStatus,
+                  applicationNo: fStatus.applicationNo,
+                  formType: fStatus.formType,
+                };
+              } else {
+                return null;
+              }
             })
           );
           const formWithStatusAndApplicationNoForUpdated = await Promise.all(
@@ -187,7 +200,7 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               } else if (fStatus.formType === "Loan") {
@@ -195,7 +208,7 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               } else if (fStatus.formType === "Insurance") {
@@ -203,7 +216,7 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               } else if (fStatus.formType === "Demat Account") {
@@ -211,17 +224,21 @@ class PendingFormController {
                   where: {
                     id: fStatus.formId,
                     status: 1,
-                    addedBy: loggedInUser.id,
+                    addedBy: centerUser.id,
                   },
                 });
               }
 
-              return {
-                ...form,
-                formStatus: fStatus.formStatus,
-                applicationNo: fStatus.applicationNo,
-                formStatus: fStatus.formStatus,
-              };
+              if (form) {
+                return {
+                  ...form,
+                  formStatus: fStatus.formStatus,
+                  applicationNo: fStatus.applicationNo,
+                  formStatus: fStatus.formStatus,
+                };
+              } else {
+                return null;
+              }
             })
           );
 
@@ -229,8 +246,10 @@ class PendingFormController {
 
           response.success(res, "Forms fetched!", {
             ...adminDataWithoutPassword,
-            pendingForms: formWithStatusAndApplicationNoForPending,
-            updatedForms: formWithStatusAndApplicationNoForUpdated,
+            pendingForms:
+              formWithStatusAndApplicationNoForPending.filter(Boolean),
+            updatedForms:
+              formWithStatusAndApplicationNoForUpdated.filter(Boolean),
           });
         }
       } else {

@@ -86,14 +86,16 @@ class ApplicationReportController {
       console.log("error while fetching application reports ->", error);
     }
   }
+
   async applicationReportFilter(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
       const { filters, searchQuery } = req.body;
 
-      if (Object.values(filters).filter(Boolean).length !== 0) {
-        console.log("FILTER VALUES ->", filters);
-      }
+      // if (Object.values(filters).filter(Boolean).length !== 0) {
+      // console.log("FILTER VALUES ->", filters);
+      // }
+      console.log("FILTER VALUES ->", filters);
 
       if (loggedInUser) {
         let allApplicationReports;
@@ -110,6 +112,7 @@ class ApplicationReportController {
           allApplicationReports = await prisma.formStatus.findMany({
             where: {
               addedBy: centerUser.id,
+              OR: [{ formStatus: filters.formStatus }],
             },
           });
         }
@@ -120,10 +123,38 @@ class ApplicationReportController {
 
             const searchCondition = {
               status: 1,
-              OR: [
-                { fullName: { contains: searchQuery } },
-                { mobileNo: { contains: searchQuery } },
-                { panNo: { contains: searchQuery } },
+              AND: [
+                {
+                  OR: [
+                    { fullName: { contains: searchQuery } },
+                    { mobileNo: { contains: searchQuery } },
+                    { panNo: { contains: searchQuery } },
+                    {
+                      addedBy: {
+                        in: (
+                          await prisma.centerUser.findMany({
+                            where: {
+                              centerName: filters?.center,
+                            },
+                            select: {
+                              id: true,
+                            },
+                          })
+                        ).map((user) => user.id),
+                      },
+                    },
+                  ],
+                },
+                {
+                  createdAt: {
+                    gte: new Date(
+                      filters.dateRange?.length > 0 && filters.dateRange[0]
+                    ),
+                    lte: new Date(
+                      filters.dateRange?.length > 0 && filters.dateRange[1]
+                    ),
+                  },
+                },
               ],
             };
 
@@ -167,6 +198,7 @@ class ApplicationReportController {
                 formId: report.formId,
                 formStatus: report.formStatus,
                 applicationNo: report.applicationNo,
+                formType: report.formType,
                 ...form,
                 user: { ...formUser },
               };
