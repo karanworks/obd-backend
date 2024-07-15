@@ -217,7 +217,7 @@ model DematAccountForm{
 
 model FormPermission {
   id Int @id @default(autoincrement())
-  roleId Int
+  centerId Int
   formId Int
   addedBy Int
   status Int @default(1)

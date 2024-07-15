@@ -95,13 +95,15 @@ class ApplicationReportController {
       // if (Object.values(filters).filter(Boolean).length !== 0) {
       // console.log("FILTER VALUES ->", filters);
       // }
-      console.log("FILTER VALUES ->", filters);
+      // console.log("FILTER VALUES ->", filters);
 
       if (loggedInUser) {
         let allApplicationReports;
 
         if (loggedInUser.roleId === 1) {
-          allApplicationReports = await prisma.formStatus.findMany({});
+          allApplicationReports = await prisma.formStatus.findMany({
+            where: { OR: [{ formStatus: filters.selfStatus }] },
+          });
         } else {
           const centerUser = await prisma.centerUser.findFirst({
             where: {
@@ -112,10 +114,12 @@ class ApplicationReportController {
           allApplicationReports = await prisma.formStatus.findMany({
             where: {
               addedBy: centerUser.id,
-              OR: [{ formStatus: filters.formStatus }],
+              OR: [{ formStatus: filters.selfStatus }],
             },
           });
         }
+
+        console.log("FILTER RANGE ->", filters.dateRange);
 
         const applicationReportWithDetails = await Promise.all(
           allApplicationReports?.map(async (report) => {
@@ -123,27 +127,25 @@ class ApplicationReportController {
 
             const searchCondition = {
               status: 1,
-              AND: [
+              // AND: [
+              //   {
+              OR: [
+                { fullName: { contains: searchQuery } },
+                { mobileNo: { contains: searchQuery } },
+                { panNo: { contains: searchQuery } },
                 {
-                  OR: [
-                    { fullName: { contains: searchQuery } },
-                    { mobileNo: { contains: searchQuery } },
-                    { panNo: { contains: searchQuery } },
-                    {
-                      addedBy: {
-                        in: (
-                          await prisma.centerUser.findMany({
-                            where: {
-                              centerName: filters?.center,
-                            },
-                            select: {
-                              id: true,
-                            },
-                          })
-                        ).map((user) => user.id),
-                      },
-                    },
-                  ],
+                  addedBy: {
+                    in: (
+                      await prisma.centerUser.findMany({
+                        where: {
+                          centerName: filters?.center,
+                        },
+                        select: {
+                          id: true,
+                        },
+                      })
+                    ).map((user) => user.id),
+                  },
                 },
                 {
                   createdAt: {
@@ -156,6 +158,9 @@ class ApplicationReportController {
                   },
                 },
               ],
+              //   },
+
+              // ],
             };
 
             if (report.formType === "Credit Card") {
