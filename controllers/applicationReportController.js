@@ -92,17 +92,27 @@ class ApplicationReportController {
       const loggedInUser = await getLoggedInUser(req, res);
       const { filters, searchQuery } = req.body;
 
-      // if (Object.values(filters).filter(Boolean).length !== 0) {
-      // console.log("FILTER VALUES ->", filters);
-      // }
-      // console.log("FILTER VALUES ->", filters);
-
       if (loggedInUser) {
         let allApplicationReports;
 
+        const applicationReportsCondition = {
+          OR: [],
+        };
+
+        if (filters?.selfStatus) {
+          applicationReportsCondition.OR.push({
+            formStatus: filters?.selfStatus,
+          });
+        }
+
+        // If no filters are provided, remove the OR clause to avoid empty condition
+        if (applicationReportsCondition.OR.length === 0) {
+          delete applicationReportsCondition.OR;
+        }
+
         if (loggedInUser.roleId === 1) {
           allApplicationReports = await prisma.formStatus.findMany({
-            where: { OR: [{ formStatus: filters.selfStatus }] },
+            where: { ...applicationReportsCondition },
           });
         } else {
           const centerUser = await prisma.centerUser.findFirst({
@@ -114,54 +124,64 @@ class ApplicationReportController {
           allApplicationReports = await prisma.formStatus.findMany({
             where: {
               addedBy: centerUser.id,
-              OR: [{ formStatus: filters.selfStatus }],
+              ...applicationReportsCondition,
             },
           });
         }
 
-        console.log("FILTER RANGE ->", filters.dateRange);
+        const searchCondition = {
+          status: 1,
+          OR: [],
+          AND: [],
+        };
+
+        if (searchQuery) {
+          searchCondition.OR.push(
+            { fullName: { contains: searchQuery } },
+            { mobileNo: { contains: searchQuery } },
+            { panNo: { contains: searchQuery } }
+          );
+        } else {
+          delete searchCondition.OR;
+        }
+
+        // Add center condition if center filter is present
+        if (filters?.center) {
+          const centerUserIds = (
+            await prisma.centerUser.findMany({
+              where: {
+                centerName: filters.center,
+              },
+              select: {
+                id: true,
+              },
+            })
+          ).map((user) => user.id);
+
+          searchCondition.AND.push({
+            addedBy: {
+              in: centerUserIds,
+            },
+          });
+        }
+
+        // Add date range condition if date range filter is present
+        if (filters?.dateRange?.length > 0) {
+          searchCondition.AND.push({
+            createdAt: {
+              gte: new Date(filters.dateRange[0]),
+              lte: new Date(filters.dateRange[1]),
+            },
+          });
+        }
+
+        if (searchCondition.AND.length === 0) {
+          delete searchCondition.AND;
+        }
 
         const applicationReportWithDetails = await Promise.all(
           allApplicationReports?.map(async (report) => {
             let form;
-
-            const searchCondition = {
-              status: 1,
-              // AND: [
-              //   {
-              OR: [
-                { fullName: { contains: searchQuery } },
-                { mobileNo: { contains: searchQuery } },
-                { panNo: { contains: searchQuery } },
-                {
-                  addedBy: {
-                    in: (
-                      await prisma.centerUser.findMany({
-                        where: {
-                          centerName: filters?.center,
-                        },
-                        select: {
-                          id: true,
-                        },
-                      })
-                    ).map((user) => user.id),
-                  },
-                },
-                {
-                  createdAt: {
-                    gte: new Date(
-                      filters.dateRange?.length > 0 && filters.dateRange[0]
-                    ),
-                    lte: new Date(
-                      filters.dateRange?.length > 0 && filters.dateRange[1]
-                    ),
-                  },
-                },
-              ],
-              //   },
-
-              // ],
-            };
 
             if (report.formType === "Credit Card") {
               form = await prisma.creditCardForm.findFirst({

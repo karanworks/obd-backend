@@ -23,8 +23,6 @@ class FormPermissionController {
           },
         });
 
-        console.log("CENTER ID ->", centerId);
-
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         if (center) {
