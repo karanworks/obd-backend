@@ -92,22 +92,29 @@ class ApplicationReportController {
       const loggedInUser = await getLoggedInUser(req, res);
       const { filters, searchQuery } = req.body;
 
+      console.log("NEW FILTER ->", filters);
+
       if (loggedInUser) {
         let allApplicationReports;
 
         const applicationReportsCondition = {
-          OR: [],
+          AND: [],
         };
 
         if (filters?.selfStatus) {
-          applicationReportsCondition.OR.push({
+          applicationReportsCondition.AND.push({
             formStatus: filters?.selfStatus,
+          });
+        }
+        if (filters?.formType) {
+          applicationReportsCondition.AND.push({
+            formType: filters?.formType,
           });
         }
 
         // If no filters are provided, remove the OR clause to avoid empty condition
-        if (applicationReportsCondition.OR.length === 0) {
-          delete applicationReportsCondition.OR;
+        if (applicationReportsCondition.AND.length === 0) {
+          delete applicationReportsCondition.AND;
         }
 
         if (loggedInUser.roleId === 1) {
