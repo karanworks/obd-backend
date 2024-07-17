@@ -92,8 +92,6 @@ class ApplicationReportController {
       const loggedInUser = await getLoggedInUser(req, res);
       const { filters, searchQuery } = req.body;
 
-      console.log("NEW FILTER ->", filters);
-
       if (loggedInUser) {
         let allApplicationReports;
 

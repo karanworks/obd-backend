@@ -19,6 +19,7 @@ const formStatusRouter = require("./routes/formStatus");
 const applicationReportRouter = require("./routes/applicationReport");
 const pendingFormRouter = require("./routes/pendingForms");
 const formPermissionsRouter = require("./routes/formPermissions");
+const uploadRawDataRouter = require("./routes/uploadRawData");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -30,14 +31,14 @@ app.use(express.json());
 // cors connection
 app.use(
   cors({
-    origin: "http://localhost:3004",
+    origin: "http://localhost:3006",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3004");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3006");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, PUT, POST, PATCH, DELETE"
@@ -68,6 +69,7 @@ app.use("/", loanFormRouter);
 app.use("/", insuranceFormRouter);
 app.use("/", dematAccountFormRouter);
 app.use("/", formPermissionsRouter);
+app.use("/", uploadRawDataRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
