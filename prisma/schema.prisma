@@ -224,3 +224,12 @@ model FormPermission {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
+
+model RawFormData{
+  id Int @id @default(autoincrement())
+  mobile1 String
+  mobile2 String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+
+}
