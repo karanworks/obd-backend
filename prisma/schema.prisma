@@ -234,9 +234,9 @@ model RawFormData{
   company String
   departmentPosition String
   dataType String
-  mobile1 String
-  mobile2 String?
-  mobile3 String?
+  mobile1 String @unique
+  mobile2 String? @unique
+  mobile3 String? @unique
   vendor String
   purchaseDate DateTime
   addedBy Int
