@@ -11,8 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.11.0",
-    "ari-client": "^2.2.0",
-    "asterisk-ami-client": "^1.1.5",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

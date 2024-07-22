@@ -5,7 +5,7 @@ const getLoggedInUser = require("../utils/getLoggedInUser");
 const xlsx = require("xlsx");
 
 class UploadRawDataController {
-  async uploadRawDataPost(req, res) {
+  uploadRawDataPost = async (req, res) => {
     try {
       const { vendorName, dataType, purchaseDate } = req.body;
       const loggedInUser = await getLoggedInUser(req, res);
@@ -32,73 +32,109 @@ class UploadRawDataController {
 
         for (let i = 1; i < rows.length; i++) {
           const values = rows[i]?.split(",").map((value) => value.trim());
-          const mobileNos = values[values.length - 1];
+          // const mobileNos = values[values.length - 1];
 
-          const separatedMobileNos = mobileNos.split(";");
-
-          const firstMobileNoRegex = /\d{10}/g; // regex for getting 10 consecutive numbers from a string
-          const firstMobileNo = separatedMobileNos[0].match(firstMobileNoRegex);
-
-          // console.log("SEPARATION ->", separatedMobileNos[1]);
-
-          const secondMobileNoRegex = /[^0-9]+/; // split numbers where there are no numbers (numbers will be separated based on space and symbols for example - "+91--9096273020" will become [91, 9096273020] )
-
-          const secondMobileNoExtraction =
-            Boolean(separatedMobileNos[1]) &&
-            separatedMobileNos[1]?.split(secondMobileNoRegex)?.filter(Boolean);
-
-          const lastSectionDigits =
-            secondMobileNoExtraction[secondMobileNoExtraction?.length - 1];
-          const lastSectionDigitsLength = lastSectionDigits?.length;
-
-          const secondLastSectionDigits =
-            secondMobileNoExtraction[secondMobileNoExtraction?.length - 2];
-
-          // combining last two sections eg. ["91", "88844", "99999"] = "8884499999"
-          // const lastSectionDigitAfterCombiningTwoSections =
-          //   secondMobileNoExtraction?.length > 2
-          //     ? secondMobileNoExtraction[secondMobileNoExtraction?.length - 2] +
-          //       lastSectionDigits
-          //     : "" + lastSectionDigits; // checks whether section has more than 1 item, Example - +91-9820130125; +91-; -91; 22; 25531923, will be in separate section hence there will not be any other element this will be separated like [["91", "9820130125" ], ["91"](here we don't have second value so it won't be able to get the length - 2 element) , ["91"], ["22"], ["25531923"] ]
-
-          // const lastSectionDigitAfterCombiningTwoSectionsLength =
-          //   lastSectionDigitAfterCombiningTwoSections.length;
-
-          let secondMobileNo;
-
-          if (firstMobileNo?.length > 0) {
-            console.log("FIRST MOBILE NO ->", firstMobileNo);
-          } else {
-            console.log("MOBILE NOT IN CORRECT FORMAT ->", firstMobileNo);
-          }
-
-          // this ensures that if second no exists (there are some cases where only 1 no is present)
-          if (secondMobileNoExtraction?.length > 0) {
-            // this checkes whether the last section itself has 10 numbers which means it itself is mobile No
-            if (lastSectionDigitsLength === 10) {
-              console.log("MOBILE NO ->", lastSectionDigits);
-            } else if (
-              // Landline no are not less than 7 and it can go upto 12 digits
-              lastSectionDigitsLength !== 10 &&
-              lastSectionDigitsLength >= 7 &&
-              lastSectionDigitsLength <= 12
-            ) {
-              // makes 10 digit mobile number by adding second last and last item in the array
-              console.log("LANDLINE ->", lastSectionDigits);
-            } else {
-              console.log(
-                "COMBINED NUMBERS ->",
-                secondLastSectionDigits + "-" + lastSectionDigits
-              );
-            }
+          for (let j = 0; j < values.length; j++) {
+            dataObj[columns[j]].push(values[j]);
           }
         }
 
+        const numberOfRecords = dataObj[columns[0]].length;
+
+        for (let k = 0; k < numberOfRecords; k++) {
+          const mobilesNos = this.extractNumbers(dataObj["tel_Other"][k]);
+
+          // Skip record creation if mobile1 is null
+          if (!mobilesNos[0]) {
+            console.log("Skipping record due to missing mobile number.");
+            continue;
+          }
+
+          const record = {
+            name: dataObj["candidateName"][k],
+            email: dataObj["emailAddress"][k],
+            state: dataObj["locationCurrentMas"][k],
+            salary: dataObj["salary"][k],
+            company: dataObj["companyName"][k],
+            departmentPosition: dataObj["designation"][k],
+            dataType: dataType,
+            mobile1: mobilesNos[0],
+            mobile2: mobilesNos[1] ? mobilesNos[1] : null,
+            mobile3: mobilesNos[2] ? mobilesNos[2] : null,
+            vendor: vendorName,
+            purchaseDate: purchaseDate[0],
+            addedBy: loggedInUser.id,
+          };
+
+          // create record for each line in excel file
+          await prisma.rawFormData.create({
+            data: record,
+          });
+        }
         response.success(res, "Data uploaded successfully!", rows);
       }
     } catch (error) {
       console.log("error while form status submission ->", error);
     }
+  };
+
+  extractNumbers(numberString) {
+    const separatedMobileNos = numberString.split(";");
+
+    const firstMobileNoRegex = /\d{10}/g;
+    const firstMobileNo = separatedMobileNos[0].match(firstMobileNoRegex);
+
+    const secondMobileNoRegex = /[^0-9]+/;
+    const secondMobileNoExtraction =
+      Boolean(separatedMobileNos[1]) &&
+      separatedMobileNos[1]?.split(secondMobileNoRegex)?.filter(Boolean);
+
+    const lastSectionDigits =
+      secondMobileNoExtraction[secondMobileNoExtraction?.length - 1];
+
+    const lastSectionDigitsLength = lastSectionDigits?.length;
+
+    const thirdMobileNoRegex = /[^0-9]+/;
+    const thirdMobileNoExtraction =
+      Boolean(separatedMobileNos[2]) &&
+      separatedMobileNos[2]?.split(thirdMobileNoRegex)?.filter(Boolean);
+
+    const thirdNumberLastSectionDigits =
+      thirdMobileNoExtraction[thirdMobileNoExtraction?.length - 1];
+
+    const thirdNumberLastSectionDigitsLength =
+      thirdNumberLastSectionDigits?.length;
+
+    let mobileNos = [];
+
+    if (firstMobileNo?.length > 0) {
+      mobileNos.push(firstMobileNo[0]);
+    } else {
+      mobileNos.push(null);
+    }
+
+    // this ensures that if second no exists (there are some cases where only 1 no is present)
+    if (secondMobileNoExtraction?.length > 0) {
+      if (lastSectionDigitsLength === 10) {
+        mobileNos.push(lastSectionDigits);
+      } else {
+        mobileNos.push(separatedMobileNos[1]);
+      }
+    } else {
+      mobileNos.push(null);
+    }
+
+    if (thirdMobileNoExtraction?.length > 0) {
+      if (thirdNumberLastSectionDigitsLength === 10) {
+        mobileNos.push(thirdNumberLastSectionDigits);
+      } else {
+        mobileNos.push(separatedMobileNos[2]);
+      }
+    } else {
+      mobileNos.push(null);
+    }
+
+    return mobileNos;
   }
 }
 
