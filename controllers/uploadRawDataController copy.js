@@ -17,16 +17,21 @@ class UploadRawDataController {
 
         const { buffer } = req.file;
 
+        console.time("CONVERSION CODE TIME");
         // Convert xlsx buffer to workbook
         const workbook = xlsx.read(buffer, { type: "buffer" });
 
         // Convert first sheet to CSV
         const sheetName = workbook.SheetNames[0];
         const csvData = xlsx.utils.sheet_to_csv(workbook.Sheets[sheetName]);
+        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        console.log("JSON DATA ->", jsonData);
 
         const rows = csvData.trim().split("\n");
 
         const columns = rows[0].split(",").map((column) => column.trim());
+        console.timeEnd("CONVERSION CODE TIME");
 
         // Mapping of original column names to new property names
         const columnMapping = {
@@ -50,6 +55,8 @@ class UploadRawDataController {
 
         // columns.forEach((column) => (dataObj[column] = []));
         const dataArr = [];
+
+        console.time("LOOP TIME");
 
         for (let i = 1; i < rows.length; i++) {
           const values = rows[i]?.split(",").map((value) => value.trim());
@@ -87,39 +94,19 @@ class UploadRawDataController {
           });
         }
 
-        function filterUniqueRecords(records) {
-          const seenMobileNumbers = new Set();
+        console.timeEnd("LOOP TIME");
 
-          return records.filter((record) => {
-            const { mobile1, mobile2, mobile3 } = record;
-            const mobiles = [mobile1, mobile2, mobile3];
+        console.time("FILTERING RECORD TIME");
+        const uniqueRecords = this.filterUniqueRecords(dataArr);
+        console.timeEnd("FILTERING RECORD TIME");
 
-            // Check if any of the non-null mobile numbers are already seen
-            const isDuplicate = mobiles.some(
-              (mobile) => mobile !== null && seenMobileNumbers.has(mobile)
-            );
-
-            // If it's not a duplicate, add these non-null numbers to the set
-            if (!isDuplicate) {
-              mobiles.forEach((mobile) => {
-                if (mobile !== null) {
-                  seenMobileNumbers.add(mobile);
-                }
-              });
-              return true;
-            }
-
-            return false;
-          });
-        }
-
-        const uniqueRecords = filterUniqueRecords(dataArr);
-
-        // console.log("UNIQUE RECORDS ->", uniqueRecords);
+        console.time("QUERY EXECUTIION TIME");
 
         await prisma.rawFormData.createMany({
           data: uniqueRecords,
         });
+
+        console.timeEnd("QUERY EXECUTIION TIME");
 
         response.success(res, "Data uploaded successfully!", rows);
       }
@@ -194,6 +181,32 @@ class UploadRawDataController {
     }
 
     return mobileNos;
+  }
+
+  filterUniqueRecords(records) {
+    const seenMobileNumbers = new Set();
+
+    return records.filter((record) => {
+      const { mobile1, mobile2, mobile3 } = record;
+      const mobiles = [mobile1, mobile2, mobile3];
+
+      // Check if any of the non-null mobile numbers are already seen
+      const isDuplicate = mobiles.some(
+        (mobile) => mobile !== null && seenMobileNumbers.has(mobile)
+      );
+
+      // If it's not a duplicate, add these non-null numbers to the set
+      if (!isDuplicate) {
+        mobiles.forEach((mobile) => {
+          if (mobile !== null) {
+            seenMobileNumbers.add(mobile);
+          }
+        });
+        return true;
+      }
+
+      return false;
+    });
   }
 }
 

@@ -3,6 +3,8 @@ const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const xlsx = require("xlsx");
+const fs = require("fs");
+const { error } = require("console");
 
 class UploadRawDataController {
   uploadRawDataPost = async (req, res) => {
@@ -17,86 +19,57 @@ class UploadRawDataController {
 
         const { buffer } = req.file;
 
+        console.time("CONVERSION TIME");
         // Convert xlsx buffer to workbook
         const workbook = xlsx.read(buffer, { type: "buffer" });
 
         // Convert first sheet to CSV
         const sheetName = workbook.SheetNames[0];
-        const csvData = xlsx.utils.sheet_to_csv(workbook.Sheets[sheetName]);
+        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        const rows = csvData.trim().split("\n");
+        const recordsData = jsonData
+          .map((record) => {
+            const mobileNos =
+              record.tel_Other && this.getNumbers(record.tel_Other);
 
-        const columns = rows[0].split(",").map((column) => column.trim());
-        const dataObj = {};
-        columns.forEach((column) => (dataObj[column] = []));
+            if (!record.tel_Other) {
+              return null;
+            }
 
-        for (let i = 1; i < rows.length; i++) {
-          const values = rows[i]?.split(",").map((value) => value.trim());
-          // const mobileNos = values[values.length - 1];
+            if (mobileNos?.length > 0 && !mobileNos[0]) {
+              // console.log("Skipping record due to missing mobile number.");
+              return null;
+            }
 
-          for (let j = 0; j < values.length; j++) {
-            dataObj[columns[j]].push(values[j]);
-          }
-        }
+            return {
+              name: String(record.candidateName) || "",
+              email: String(record.emailAddress) || "",
+              company: String(record.companyName) || "",
+              departmentPosition: String(record.designation) || "",
+              salary: String(record.salary) || "",
+              state: String(record.locationCurrentMas) || "",
+              mobile1: mobileNos[0],
+              mobile2: mobileNos[1],
+              mobile3: mobileNos[2],
+              dataType,
+              vendor: vendorName,
+              purchaseDate: purchaseDate[0],
+              addedBy: loggedInUser.id,
+            };
+          })
+          .filter(Boolean);
 
-        const numberOfRecords = dataObj[columns[0]].length;
+        const uniqueRecords = this.filterUniqueRecords(recordsData);
+        console.timeEnd("CONVERSION TIME");
 
-        for (let k = 0; k < numberOfRecords; k++) {
-          const mobilesNos = this.getNumbers(dataObj["tel_Other"][k]);
+        console.time("QUERY TIME");
+        await prisma.rawFormData.createMany({
+          data: uniqueRecords,
+        });
 
-          // Skip record creation if mobile1 is null
-          if (!mobilesNos[0]) {
-            // console.log("Skipping record due to missing mobile number.");
-            continue;
-          }
+        console.timeEnd("QUERY TIME");
 
-          const mobileConditions = [];
-
-          // Add conditions to the array only if the value is not null
-          if (mobilesNos[0]) {
-            mobileConditions.push({ mobile1: mobilesNos[0] });
-          }
-          if (mobilesNos[1]) {
-            mobileConditions.push({ mobile2: mobilesNos[1] });
-          }
-          if (mobilesNos[2]) {
-            mobileConditions.push({ mobile3: mobilesNos[2] });
-          }
-
-          const recordAlreadyExist = await prisma.rawFormData.findFirst({
-            where: {
-              OR: mobileConditions,
-            },
-          });
-
-          if (recordAlreadyExist) {
-            // console.log("Skipping record due to existing record.");
-            continue;
-          }
-
-          const record = {
-            name: dataObj["candidateName"][k],
-            email: dataObj["emailAddress"][k],
-            state: dataObj["locationCurrentMas"][k],
-            salary: dataObj["salary"][k],
-            company: dataObj["companyName"][k],
-            departmentPosition: dataObj["designation"][k],
-            dataType: dataType,
-            mobile1: mobilesNos[0],
-            mobile2: mobilesNos[1] ? mobilesNos[1] : null,
-            mobile3: mobilesNos[2] ? mobilesNos[2] : null,
-            vendor: vendorName,
-            purchaseDate: purchaseDate[0],
-            addedBy: loggedInUser.id,
-          };
-
-          // create record for each line in excel file
-          await prisma.rawFormData.create({
-            data: record,
-          });
-        }
-
-        response.success(res, "Data uploaded successfully!", rows);
+        response.success(res, "Data uploaded successfully!");
       }
     } catch (error) {
       console.log("error while form status submission ->", error);
@@ -104,7 +77,7 @@ class UploadRawDataController {
   };
 
   getNumbers(numberString) {
-    const separatedMobileNos = numberString.split(";");
+    const separatedMobileNos = numberString.toString().split(";");
 
     const firstMobileNoRegex = /\d{10}/g;
     const firstMobileNo = separatedMobileNos[0].match(firstMobileNoRegex);
@@ -169,6 +142,32 @@ class UploadRawDataController {
     }
 
     return mobileNos;
+  }
+
+  filterUniqueRecords(records) {
+    const seenMobileNumbers = new Set();
+
+    return records.filter((record) => {
+      const { mobile1, mobile2, mobile3 } = record;
+      const mobiles = [mobile1, mobile2, mobile3];
+
+      // Check if any of the non-null mobile numbers are already seen
+      const isDuplicate = mobiles.some(
+        (mobile) => mobile !== null && seenMobileNumbers.has(mobile)
+      );
+
+      // If it's not a duplicate, add these non-null numbers to the set
+      if (!isDuplicate) {
+        mobiles.forEach((mobile) => {
+          if (mobile !== null) {
+            seenMobileNumbers.add(mobile);
+          }
+        });
+        return true;
+      }
+
+      return false;
+    });
   }
 }
 
