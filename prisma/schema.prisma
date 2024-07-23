@@ -225,6 +225,24 @@ model FormPermission {
   updatedAt DateTime @default(now())  
 }
 
+model RawFormData2{
+  id Int @id @default(autoincrement())
+  name String
+  email String
+  state String
+  salary String
+  company String
+  departmentPosition String
+  dataType String
+  mobile1 String
+  mobile2 String? 
+  mobile3 String?
+  vendor String
+  purchaseDate DateTime
+  addedBy Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
 model RawFormData{
   id Int @id @default(autoincrement())
   name String

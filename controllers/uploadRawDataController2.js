@@ -27,74 +27,99 @@ class UploadRawDataController {
         const rows = csvData.trim().split("\n");
 
         const columns = rows[0].split(",").map((column) => column.trim());
-        const dataObj = {};
-        columns.forEach((column) => (dataObj[column] = []));
+
+        // Mapping of original column names to new property names
+        const columnMapping = {
+          candidateName: "name",
+          emailAddress: "email",
+          locationCurrentMas: "state",
+          salary: "salary",
+          companyName: "company",
+          designation: "departmentPosition",
+          // Add more mappings as needed
+        };
+        const propertiesToInclude = [
+          "name",
+          "email",
+          "state",
+          "salary",
+          "company",
+          "departmentPosition",
+          // Add more properties as needed
+        ];
+
+        // columns.forEach((column) => (dataObj[column] = []));
+        const dataArr = [];
 
         for (let i = 1; i < rows.length; i++) {
           const values = rows[i]?.split(",").map((value) => value.trim());
-          // const mobileNos = values[values.length - 1];
-
+          const dataObject = {};
+          let mobileNos;
           for (let j = 0; j < values.length; j++) {
-            dataObj[columns[j]].push(values[j]);
+            const originalColumnName = columns[j];
+            if (originalColumnName === "tel_Other") {
+              mobileNos = this.getNumbers(values[j]);
+
+              dataObject["mobile1"] = mobileNos[0];
+              dataObject["mobile2"] = mobileNos[1];
+              dataObject["mobile3"] = mobileNos[2];
+            }
+            const newColumnName =
+              columnMapping[originalColumnName] || originalColumnName;
+
+            // Only include properties that are in the propertiesToInclude list
+            if (propertiesToInclude.includes(newColumnName)) {
+              dataObject[newColumnName] = values[j];
+            }
           }
-        }
 
-        const numberOfRecords = dataObj[columns[0]].length;
-
-        for (let k = 0; k < numberOfRecords; k++) {
-          const mobilesNos = this.getNumbers(dataObj["tel_Other"][k]);
-
-          // Skip record creation if mobile1 is null
-          if (!mobilesNos[0]) {
+          if (mobileNos?.length > 0 && !mobileNos[0]) {
             // console.log("Skipping record due to missing mobile number.");
             continue;
           }
 
-          const mobileConditions = [];
-
-          // Add conditions to the array only if the value is not null
-          if (mobilesNos[0]) {
-            mobileConditions.push({ mobile1: mobilesNos[0] });
-          }
-          if (mobilesNos[1]) {
-            mobileConditions.push({ mobile2: mobilesNos[1] });
-          }
-          if (mobilesNos[2]) {
-            mobileConditions.push({ mobile3: mobilesNos[2] });
-          }
-
-          const recordAlreadyExist = await prisma.rawFormData.findFirst({
-            where: {
-              OR: mobileConditions,
-            },
-          });
-
-          if (recordAlreadyExist) {
-            // console.log("Skipping record due to existing record.");
-            continue;
-          }
-
-          const record = {
-            name: dataObj["candidateName"][k],
-            email: dataObj["emailAddress"][k],
-            state: dataObj["locationCurrentMas"][k],
-            salary: dataObj["salary"][k],
-            company: dataObj["companyName"][k],
-            departmentPosition: dataObj["designation"][k],
-            dataType: dataType,
-            mobile1: mobilesNos[0],
-            mobile2: mobilesNos[1] ? mobilesNos[1] : null,
-            mobile3: mobilesNos[2] ? mobilesNos[2] : null,
+          dataArr.push({
+            ...dataObject,
+            dataType,
             vendor: vendorName,
             purchaseDate: purchaseDate[0],
             addedBy: loggedInUser.id,
-          };
-
-          // create record for each line in excel file
-          await prisma.rawFormData.create({
-            data: record,
           });
         }
+
+        function filterUniqueRecords(records) {
+          const seenMobileNumbers = new Set();
+
+          return records.filter((record) => {
+            const { mobile1, mobile2, mobile3 } = record;
+            const mobiles = [mobile1, mobile2, mobile3];
+
+            // Check if any of the non-null mobile numbers are already seen
+            const isDuplicate = mobiles.some(
+              (mobile) => mobile !== null && seenMobileNumbers.has(mobile)
+            );
+
+            // If it's not a duplicate, add these non-null numbers to the set
+            if (!isDuplicate) {
+              mobiles.forEach((mobile) => {
+                if (mobile !== null) {
+                  seenMobileNumbers.add(mobile);
+                }
+              });
+              return true;
+            }
+
+            return false;
+          });
+        }
+
+        const uniqueRecords = filterUniqueRecords(dataArr);
+
+        // console.log("UNIQUE RECORDS ->", uniqueRecords);
+
+        await prisma.rawFormData.createMany({
+          data: uniqueRecords,
+        });
 
         response.success(res, "Data uploaded successfully!", rows);
       }
