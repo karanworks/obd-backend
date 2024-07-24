@@ -229,7 +229,15 @@ model RawFormData{
   id Int @id @default(autoincrement())
   name String
   email String
-  state String
+  email2 String?
+  gender String?
+  address String?
+  state String?
+  stateId Int?
+  city String?
+  cityId Int?
+  country String?
+  pinCode String?
   salary String
   company String
   departmentPosition String
@@ -237,6 +245,7 @@ model RawFormData{
   mobile1 String @unique
   mobile2 String? @unique
   mobile3 String? @unique
+  landline String?
   vendor String
   purchaseDate DateTime
   addedBy Int

@@ -3,7 +3,6 @@ const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const xlsx = require("xlsx");
-const { time } = require("console");
 
 class UploadRawDataController {
   uploadRawDataPost = async (req, res) => {
@@ -44,7 +43,7 @@ class UploadRawDataController {
               company: String(record.companyName) || "",
               departmentPosition: String(record.designation) || "",
               salary: String(record.salary) || "",
-              city: String(record.locationCurrentMas) || "",
+              state: String(record.locationCurrentMas) || "",
               mobile1: mobileNos[0],
               mobile2: mobileNos[1],
               mobile3: mobileNos[2],
