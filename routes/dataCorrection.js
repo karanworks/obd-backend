@@ -10,5 +10,17 @@ DataCorrectionRouter.patch(
   "/data-correction",
   DataCorrectionController.dataCorrectionUpdate
 );
+DataCorrectionRouter.get(
+  "/data-correction/states",
+  DataCorrectionController.statesGet
+);
+DataCorrectionRouter.get(
+  "/data-correction/states/:stateId/cities",
+  DataCorrectionController.citiesGet
+);
+DataCorrectionRouter.get(
+  "/data-correction/cities/:cityId/pin-codes",
+  DataCorrectionController.pinCodesGet
+);
 
 module.exports = DataCorrectionRouter;
