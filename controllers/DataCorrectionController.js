@@ -33,6 +33,27 @@ class DataCorrectionController {
       console.log("error while getting users", error);
     }
   }
+  async dataCorrectionUpdate(req, res) {
+    try {
+      const token = await getToken(req, res);
+      const { cityId, stateId, cityName, pinCode } = req.body;
+
+      if (token) {
+        const allCities = await prisma.rawFormData.updateMany({
+          where: {
+            city: cityName,
+          },
+          data: { cityId, stateId, pinCode },
+        });
+
+        response.success(res, "City details updated!");
+      } else {
+        response.error(res, "User not already logged in.");
+      }
+    } catch (error) {
+      console.log("error while getting users", error);
+    }
+  }
 }
 
 module.exports = new DataCorrectionController();

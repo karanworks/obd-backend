@@ -6,5 +6,9 @@ DataCorrectionRouter.get(
   "/data-correction",
   DataCorrectionController.dataCorrectionGet
 );
+DataCorrectionRouter.patch(
+  "/data-correction",
+  DataCorrectionController.dataCorrectionUpdate
+);
 
 module.exports = DataCorrectionRouter;

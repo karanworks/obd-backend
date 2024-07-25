@@ -252,3 +252,31 @@ model RawFormData{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
+
+
+model States {
+  id Int @id @default(autoincrement())
+  name String
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
+
+model Cities {
+  id Int @id @default(autoincrement())
+  name String
+  stateId Int
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
+
+model PinCode{
+  id Int @id @default(autoincrement())
+  name String
+  pinCode String
+  cityId Int
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
