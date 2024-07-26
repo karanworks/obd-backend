@@ -18,8 +18,6 @@ class OBDDataController {
         WHERE OBDData.number IS NULL
         `;
 
-        console.log("DATA FOR OBD ->", dataForOBD);
-
         const csvWriter = createCsvWriter({
           path: "data-for-obd.csv", // Path to the CSV file
           header: [{ id: "mobile1", title: "Mobile Numbers" }],
@@ -44,9 +42,9 @@ class OBDDataController {
                 console.log("CSV file sent successfully!");
                 fs.unlink(filePath, (err) => {
                   if (err) {
-                    console.error("Error deleting CSV file:", err);
+                    // console.error("Error deleting CSV file:", err);
                   } else {
-                    console.log("CSV file deleted successfully!");
+                    // console.log("CSV file deleted successfully!");
                   }
                 });
               }
