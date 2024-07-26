@@ -8,7 +8,6 @@ const { time } = require("console");
 class UploadRawDataController {
   uploadRawDataPost = async (req, res) => {
     try {
-      console.time("QUERY TIME");
       const { vendorName, dataType, purchaseDate } = req.body;
       const loggedInUser = await getLoggedInUser(req, res);
 
@@ -62,7 +61,6 @@ class UploadRawDataController {
           data: uniqueRecords,
           skipDuplicates: true,
         });
-        console.timeEnd("QUERY TIME");
 
         response.success(res, "Data uploaded successfully!");
       }

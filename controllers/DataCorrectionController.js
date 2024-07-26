@@ -2,13 +2,14 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getToken = require("../utils/getToken");
+const getLoggedInUser = require("../utils/getLoggedInUser");
 
 class DataCorrectionController {
   async dataCorrectionGet(req, res) {
     try {
-      const token = await getToken(req, res);
+      const loggedInUser = await getLoggedInUser(req, res);
 
-      if (token) {
+      if (loggedInUser) {
         const city = await prisma.rawFormData.groupBy({
           by: ["city"],
           _count: {
@@ -61,9 +62,9 @@ class DataCorrectionController {
 
   async statesGet(req, res) {
     try {
-      const token = await getToken(req, res);
+      const loggedInUser = await getLoggedInUser(req, res);
 
-      if (token) {
+      if (loggedInUser) {
         const states = await prisma.states.findMany({});
 
         response.success(res, "States fetched!", {
@@ -78,11 +79,11 @@ class DataCorrectionController {
   }
   async citiesGet(req, res) {
     try {
-      const token = await getToken(req, res);
+      const loggedInUser = await getLoggedInUser(req, res);
 
       const { stateId } = req.params;
 
-      if (token) {
+      if (loggedInUser) {
         const cities = await prisma.cities.findMany({
           where: {
             stateId: parseInt(stateId),
@@ -101,11 +102,11 @@ class DataCorrectionController {
   }
   async pinCodesGet(req, res) {
     try {
-      const token = await getToken(req, res);
+      const loggedInUser = await getLoggedInUser(req, res);
 
       const { cityId } = req.params;
 
-      if (token) {
+      if (loggedInUser) {
         const pinCodes = await prisma.pinCode.findMany({
           where: {
             cityId: parseInt(cityId),

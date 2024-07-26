@@ -251,6 +251,8 @@ model RawFormData{
   addedBy Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
+
+  @@index(mobile1)
 }
 
 
@@ -279,4 +281,29 @@ model PinCode{
   status Int @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
+}
+
+model OBDData{
+  id Int @id @default(autoincrement())
+  number String @unique
+  camp String?
+  leadset String?
+  callStatus String?
+  callStartTime String?
+  callAnsdTime String?
+  callEndTime String?
+  ringTime String?
+  talkTime String?
+  callerId String?
+  retryNo String?
+  hangupReason String?
+  dtmfKeyPress String?
+  dtmfPressTime String?
+  token String?
+  fileName String?
+  addedBy Int?
+  loadDate String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+
 }
