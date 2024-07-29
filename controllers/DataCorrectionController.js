@@ -26,9 +26,31 @@ class DataCorrectionController {
 
           take: 1,
         });
+        const salary = await prisma.rawFormData.groupBy({
+          by: ["salary"],
+          _count: {
+            id: true,
+          },
+          orderBy: {
+            _count: {
+              id: "desc",
+            },
+          },
+          where: {
+            salaryId: null,
+            salary: {
+              not: {
+                in: ["", "undefined"],
+              }, // Ensures salary is not an empty string
+            },
+          },
+
+          take: 1,
+        });
 
         response.success(res, "Current city with count fetched!", {
           currentCity: city,
+          currentSalary: salary,
         });
       } else {
         response.error(res, "User not already logged in.");
@@ -43,15 +65,55 @@ class DataCorrectionController {
       const { cityId, stateId, cityName, pinCode } = req.body;
 
       if (token) {
-        // update city's city id and pin code
+        const stateName = await prisma.states.findFirst({
+          where: {
+            id: stateId,
+          },
+        });
+
         await prisma.rawFormData.updateMany({
           where: {
             city: cityName,
           },
-          data: { cityId, stateId, pinCode },
+          data: { cityId, stateId, pinCode, state: stateName.name },
         });
 
         response.success(res, "City details updated!");
+      } else {
+        response.error(res, "User not already logged in.");
+      }
+    } catch (error) {
+      console.log("error while getting users", error);
+    }
+  }
+
+  async salaryInLacsGet(req, res) {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
+
+      if (loggedInUser) {
+        const salaryInLacs = await prisma.salaryInLacs.findMany({});
+
+        response.success(res, "Salary in lacs fetched!", {
+          salaryInLacs,
+        });
+      } else {
+        response.error(res, "User not already logged in.");
+      }
+    } catch (error) {
+      console.log("error while getting users", error);
+    }
+  }
+  async salaryInThousandsGet(req, res) {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
+
+      if (loggedInUser) {
+        const salaryInThousands = await prisma.salaryInThousands.findMany({});
+
+        response.success(res, "Salary in thousands fetched!", {
+          salaryInThousands,
+        });
       } else {
         response.error(res, "User not already logged in.");
       }

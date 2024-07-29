@@ -22,8 +22,6 @@ class DownloadDataController {
         keyPress,
       } = req.body;
 
-      console.log("DOWNLOAD DATA FILTER API CALLED ->", req.body);
-
       const loggedInUser = await getLoggedInUser(req, res);
       if (loggedInUser) {
         const conditions = [];
@@ -45,33 +43,38 @@ class DownloadDataController {
           conditions.push(`RawFormData.pinCode = ?`);
           params.push(pinCode);
         }
-        if (email) {
-          conditions.push(`RawFormData.email = ?`);
-          params.push(email);
+        if (email === "Yes") {
+          conditions.push(`RawFormData.email IS NOT NULL`);
+          // params.push(email);
+        } else if (email === "No") {
+          conditions.push(
+            `(RawFormData.email IS NULL OR RawFormData.email = '')`
+          );
         }
         if (salary) {
           conditions.push(`RawFormData.salary = ?`);
           params.push(salary);
         }
-        if (ringing) {
-          conditions.push(`OBDData.ringing = ?`);
-          params.push(ringing);
+        if (ringing === "Yes") {
+          conditions.push(`OBDData.ringTime IS NOT NULL`);
+          // params.push(ringing);
         }
-        if (talked) {
-          conditions.push(`OBDData.talked = ?`);
-          params.push(talked);
+        if (talked === "Yes") {
+          conditions.push(`OBDData.talkTime IS NOT NULL`);
+          // params.push(talked);
         }
-        if (keyPress) {
-          conditions.push(`OBDData.keyPress = ?`);
-          params.push(keyPress);
+        if (keyPress === "Yes") {
+          conditions.push(`OBDData.dtmfKeyPress IS NOT NULL`);
+          // params.push(keyPress);
         }
 
         const whereClause = conditions.length
           ? `WHERE ${conditions.join(" AND ")}`
           : "";
 
+        console.log("PARAMS ->", params);
         const query = `
-        SELECT RawFormData.mobile1, RawFormData.name, OBDData.ringTime 
+        SELECT RawFormData.id, RawFormData.mobile1, RawFormData.name, RawFormData.city, RawFormData.state, RawFormData.pinCode, RawFormData.salary, RawFormData.email, OBDData.ringTime 
         FROM RawFormData
         INNER JOIN OBDData ON OBDData.number = RawFormData.mobile1
         ${whereClause}
@@ -80,9 +83,9 @@ class DownloadDataController {
         // Use Prisma's queryRaw with parameterized values
         const filteredData = await prisma.$queryRawUnsafe(query, ...params);
 
-        console.log("FILTERED DATA ->", filteredData);
+        console.log("filtered data ->", filteredData);
 
-        response.success(res, "Data filtered!");
+        response.success(res, "Data filtered!", filteredData);
       } else {
         response.error(res, "User not already logged in.");
       }

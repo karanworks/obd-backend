@@ -239,6 +239,7 @@ model RawFormData{
   country String?
   pinCode String?
   salary String
+  salaryId String?
   company String
   departmentPosition String
   dataType String
@@ -306,4 +307,17 @@ model OBDData{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 
+}
+
+model SalaryInLacs{
+  id Int @id @default(autoincrement())
+  value String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
+model SalaryInThousands{
+  id Int @id @default(autoincrement())
+  value String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
 }

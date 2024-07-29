@@ -11,6 +11,14 @@ DataCorrectionRouter.patch(
   DataCorrectionController.dataCorrectionUpdate
 );
 DataCorrectionRouter.get(
+  "/data-correction/salary-lacs",
+  DataCorrectionController.salaryInLacsGet
+);
+DataCorrectionRouter.get(
+  "/data-correction/salary-thousands",
+  DataCorrectionController.salaryInThousandsGet
+);
+DataCorrectionRouter.get(
   "/data-correction/states",
   DataCorrectionController.statesGet
 );
