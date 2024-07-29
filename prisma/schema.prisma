@@ -239,7 +239,7 @@ model RawFormData{
   country String?
   pinCode String?
   salary String
-  salaryId String?
+  salaryInNumbers Int?
   company String
   departmentPosition String
   dataType String

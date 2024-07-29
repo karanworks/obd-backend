@@ -37,13 +37,32 @@ class UploadRawDataController {
               return null;
             }
 
+            // return {
+            //   name: String(record.candidateName) || "",
+            //   email: String(record.emailAddress) || "",
+            //   company: String(record.companyName) || "",
+            //   departmentPosition: String(record.designation) || "",
+            //   salary: String(record.salary) || "",
+            //   city: String(record.locationCurrentMas) || "",
+            //   mobile1: mobileNos[0],
+            //   mobile2: mobileNos[1],
+            //   mobile3: mobileNos[2],
+            //   dataType,
+            //   vendor: vendorName,
+            //   purchaseDate: purchaseDate[0],
+            //   addedBy: loggedInUser.id,
+            // };
             return {
-              name: String(record.candidateName) || "",
-              email: String(record.emailAddress) || "",
-              company: String(record.companyName) || "",
-              departmentPosition: String(record.designation) || "",
-              salary: String(record.salary) || "",
-              city: String(record.locationCurrentMas) || "",
+              name: record.candidateName ? String(record.candidateName) : "",
+              email: record.emailAddress ? String(record.emailAddress) : "",
+              company: record.companyName ? String(record.companyName) : "",
+              departmentPosition: record.designation
+                ? String(record.designation)
+                : "",
+              salary: record.salary ? String(record.salary) : "",
+              city: record.locationCurrentMas
+                ? String(record.locationCurrentMas)
+                : "",
               mobile1: mobileNos[0],
               mobile2: mobileNos[1],
               mobile3: mobileNos[2],

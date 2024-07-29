@@ -83,8 +83,6 @@ class DownloadDataController {
         // Use Prisma's queryRaw with parameterized values
         const filteredData = await prisma.$queryRawUnsafe(query, ...params);
 
-        console.log("filtered data ->", filteredData);
-
         response.success(res, "Data filtered!", filteredData);
       } else {
         response.error(res, "User not already logged in.");

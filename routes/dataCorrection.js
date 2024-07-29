@@ -7,8 +7,12 @@ DataCorrectionRouter.get(
   DataCorrectionController.dataCorrectionGet
 );
 DataCorrectionRouter.patch(
-  "/data-correction",
-  DataCorrectionController.dataCorrectionUpdate
+  "/data-correction/city",
+  DataCorrectionController.cityDataCorrectionUpdate
+);
+DataCorrectionRouter.patch(
+  "/data-correction/salary",
+  DataCorrectionController.salaryDataCorrectionUpdate
 );
 DataCorrectionRouter.get(
   "/data-correction/salary-lacs",
