@@ -95,6 +95,7 @@ class DownloadDataController {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
       if (loggedInUser) {
+        console.time("COUNT DATA TIME");
         const result = await prisma.$queryRaw`
         SELECT state, stateId, 
                COUNT(DISTINCT cityId) AS CityCount, 
@@ -102,8 +103,9 @@ class DownloadDataController {
         FROM rawformdata
         GROUP BY stateId;
       `;
+        console.timeEnd("COUNT DATA TIME");
 
-        console.log("RESULT ->", result);
+        console.time("FORM DATA TIME");
 
         // In Prisma, counts are returned as bigint, so we need to convert them to integers
         const resultWithData = await Promise.all(
@@ -135,6 +137,7 @@ class DownloadDataController {
             };
           })
         );
+        console.timeEnd("FORM DATA TIME");
 
         response.success(res, "All data fetched!", { allData: resultWithData });
       } else {
