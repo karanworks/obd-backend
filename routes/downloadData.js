@@ -6,5 +6,9 @@ DownloadDataRouter.post(
   "/download-data/filter",
   DownloadDataController.downloadDataFilter
 );
+DownloadDataRouter.get(
+  "/download-data/all-data",
+  DownloadDataController.downloadAllData
+);
 
 module.exports = DownloadDataRouter;

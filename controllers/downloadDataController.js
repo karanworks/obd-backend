@@ -91,6 +91,60 @@ class DownloadDataController {
       console.log("error while getting users", error);
     }
   }
+  async downloadAllData(req, res) {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
+      if (loggedInUser) {
+        const result = await prisma.$queryRaw`
+        SELECT state, stateId, 
+               COUNT(DISTINCT cityId) AS CityCount, 
+               COUNT(id) as TotalDataCount
+        FROM rawformdata
+        GROUP BY stateId;
+      `;
+
+        console.log("RESULT ->", result);
+
+        // In Prisma, counts are returned as bigint, so we need to convert them to integers
+        const resultWithData = await Promise.all(
+          result.map(async (row) => {
+            const state = row.state;
+            const stateId = row.stateId;
+            let rawData;
+
+            if (stateId) {
+              rawData = await prisma.$queryRaw`
+                SELECT name, email, mobile1, city, state, pinCode, salary
+                FROM rawformdata
+                WHERE stateId = ${stateId};
+              `;
+            } else {
+              rawData = await prisma.$queryRaw`
+                SELECT name, email, mobile1, city, state, pinCode, salary
+                FROM rawformdata
+                WHERE stateId IS NULL;
+                `;
+            }
+
+            return {
+              state,
+              stateId,
+              cityCount: Number(row.CityCount),
+              totalDataCount: Number(row.TotalDataCount),
+              formData: rawData,
+            };
+          })
+        );
+
+        response.success(res, "All data fetched!", { allData: resultWithData });
+      } else {
+        response.error(res, "User not already logged in.");
+      }
+    } catch (error) {
+      console.log("Error while getting users", error);
+      response.error(res, "Error while fetching data.");
+    }
+  }
 }
 
 module.exports = new DownloadDataController();
