@@ -95,51 +95,50 @@ class DownloadDataController {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
       if (loggedInUser) {
-        console.time("COUNT DATA TIME");
-        const result = await prisma.$queryRaw`
+        console.time("DATA COUNT TIME");
+        const groupedData = await prisma.$queryRaw`
         SELECT state, stateId, 
                COUNT(DISTINCT cityId) AS CityCount, 
                COUNT(id) as TotalDataCount
         FROM rawformdata
         GROUP BY stateId;
       `;
-        console.timeEnd("COUNT DATA TIME");
 
-        console.time("FORM DATA TIME");
+        // console.time("FORM DATA TIME");
 
-        // In Prisma, counts are returned as bigint, so we need to convert them to integers
-        const resultWithData = await Promise.all(
-          result.map(async (row) => {
-            const state = row.state;
-            const stateId = row.stateId;
-            let rawData;
+        const formDataPromises = groupedData.map(async (item) => {
+          const formData = await prisma.rawFormData.findMany({
+            where: {
+              stateId: item.stateId,
+            },
+            select: {
+              name: true,
+              email: true,
+              mobile1: true,
+              city: true,
+              state: true,
+              pinCode: true,
+              salary: true,
+            },
+          });
 
-            if (stateId) {
-              rawData = await prisma.$queryRaw`
-                SELECT name, email, mobile1, city, state, pinCode, salary
-                FROM rawformdata
-                WHERE stateId = ${stateId};
-              `;
-            } else {
-              rawData = await prisma.$queryRaw`
-                SELECT name, email, mobile1, city, state, pinCode, salary
-                FROM rawformdata
-                WHERE stateId IS NULL;
-                `;
-            }
+          return {
+            state: item.state,
+            stateId: item.stateId,
+            cityCount: Number(item.CityCount),
+            totalDataCount: Number(item.TotalDataCount),
+            formData,
+          };
+        });
 
-            return {
-              state,
-              stateId,
-              cityCount: Number(row.CityCount),
-              totalDataCount: Number(row.TotalDataCount),
-              formData: rawData,
-            };
-          })
-        );
-        console.timeEnd("FORM DATA TIME");
+        const result = await Promise.all(formDataPromises);
 
-        response.success(res, "All data fetched!", { allData: resultWithData });
+        console.timeEnd("DATA COUNT TIME");
+        console.log(result);
+
+        // console.timeEnd("FORM DATA TIME");
+
+        response.success(res, "All data fetched!", { allData: result });
       } else {
         response.error(res, "User not already logged in.");
       }
@@ -148,6 +147,63 @@ class DownloadDataController {
       response.error(res, "Error while fetching data.");
     }
   }
+
+  // async downloadAllData(req, res) {
+  //   try {
+  //     const loggedInUser = await getLoggedInUser(req, res);
+  //     if (loggedInUser) {
+  //       const result = await prisma.$queryRaw`
+  //       SELECT state, stateId,
+  //              COUNT(DISTINCT cityId) AS CityCount,
+  //              COUNT(id) as TotalDataCount
+  //       FROM rawformdata
+  //       GROUP BY stateId;
+  //     `;
+
+  //       console.log("RESULT DATA ->", result);
+
+  //       // In Prisma, counts are returned as bigint, so we need to convert them to integers
+  //       const resultWithData = await Promise.all(
+  //         result.map(async (row) => {
+  //           const state = row.state;
+  //           const stateId = row.stateId;
+  //           let rawData;
+
+  //           if (stateId) {
+  //             rawData = await prisma.$queryRaw`
+  //                 SELECT name, email, mobile1, city, state, pinCode, salary
+  //                 FROM rawformdata
+  //                 WHERE stateId = ${stateId};
+  //               `;
+  //           } else {
+  //             rawData = await prisma.$queryRaw`
+  //             SELECT name, email, mobile1, city, state, pinCode, salary
+  //             FROM rawformdata
+  //             WHERE stateId IS NULL;
+  //           `;
+  //           }
+
+  //           return {
+  //             state,
+  //             stateId,
+  //             cityCount: Number(row.CityCount),
+  //             totalDataCount: Number(row.TotalDataCount),
+  //             formData: rawData,
+  //           };
+  //         })
+  //       );
+
+  //       console.log("RESULT WITH DATA ->", resultWithData);
+
+  //       response.success(res, "All data fetched!", { allData: resultWithData });
+  //     } else {
+  //       response.error(res, "User not already logged in.");
+  //     }
+  //   } catch (error) {
+  //     console.log("Error while getting users", error);
+  //     response.error(res, "Error while fetching data.");
+  //   }
+  // }
 }
 
 module.exports = new DownloadDataController();
