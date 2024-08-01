@@ -72,7 +72,6 @@ class DownloadDataController {
           ? `WHERE ${conditions.join(" AND ")}`
           : "";
 
-        console.log("PARAMS ->", params);
         const query = `
         SELECT RawFormData.id, RawFormData.mobile1, RawFormData.name, RawFormData.city, RawFormData.state, RawFormData.pinCode, RawFormData.salary, RawFormData.email, OBDData.ringTime 
         FROM RawFormData
@@ -95,50 +94,57 @@ class DownloadDataController {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
       if (loggedInUser) {
-        console.time("DATA COUNT TIME");
+        console.time("DATABASE TIME");
         const groupedData = await prisma.$queryRaw`
         SELECT state, stateId, 
-               COUNT(DISTINCT cityId) AS CityCount, 
-               COUNT(id) as TotalDataCount
+             COUNT(DISTINCT cityId) AS CityCount, 
+             COUNT(id) as TotalDataCount
         FROM rawformdata
-        GROUP BY stateId;
+        GROUP BY state, stateId;
       `;
 
-        // console.time("FORM DATA TIME");
-
-        const formDataPromises = groupedData.map(async (item) => {
-          const formData = await prisma.rawFormData.findMany({
-            where: {
-              stateId: item.stateId,
-            },
-            select: {
-              name: true,
-              email: true,
-              mobile1: true,
-              city: true,
-              state: true,
-              pinCode: true,
-              salary: true,
-            },
-          });
-
+        const result = groupedData.map((item) => {
           return {
             state: item.state,
             stateId: item.stateId,
             cityCount: Number(item.CityCount),
             totalDataCount: Number(item.TotalDataCount),
-            formData,
           };
         });
 
-        const result = await Promise.all(formDataPromises);
-
-        console.timeEnd("DATA COUNT TIME");
-        console.log(result);
-
-        // console.timeEnd("FORM DATA TIME");
+        console.timeEnd("DATABASE TIME");
 
         response.success(res, "All data fetched!", { allData: result });
+      } else {
+        response.error(res, "User not already logged in.");
+      }
+    } catch (error) {
+      console.log("Error while getting users", error);
+      response.error(res, "Error while fetching data.");
+    }
+  }
+  async downloadStateData(req, res) {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
+      const { stateId } = req.params;
+
+      if (loggedInUser) {
+        const data = await prisma.rawFormData.findMany({
+          where: {
+            stateId: parseInt(stateId),
+          },
+          select: {
+            name: true,
+            email: true,
+            mobile1: true,
+            city: true,
+            state: true,
+            pinCode: true,
+            salary: true,
+          },
+        });
+
+        response.success(res, "State data fetched!", { stateData: data });
       } else {
         response.error(res, "User not already logged in.");
       }

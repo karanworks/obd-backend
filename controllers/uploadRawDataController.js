@@ -16,6 +16,7 @@ class UploadRawDataController {
           return res.status(400).send("No file uploaded.");
         }
 
+        console.time("UPLOAD DATA TIME");
         const { buffer } = req.file;
 
         const workbook = xlsx.read(buffer, { type: "buffer" });
@@ -80,6 +81,8 @@ class UploadRawDataController {
           data: uniqueRecords,
           skipDuplicates: true,
         });
+
+        console.timeEnd("UPLOAD DATA TIME");
 
         response.success(res, "Data uploaded successfully!");
       }

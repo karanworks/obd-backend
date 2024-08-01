@@ -86,6 +86,7 @@ class DataCorrectionController {
       console.log("error while getting users", error);
     }
   }
+
   async salaryDataCorrectionUpdate(req, res) {
     try {
       const token = await getToken(req, res);

@@ -10,5 +10,9 @@ DownloadDataRouter.get(
   "/download-data/all-data",
   DownloadDataController.downloadAllData
 );
+DownloadDataRouter.get(
+  "/download-data/state-data/:stateId",
+  DownloadDataController.downloadStateData
+);
 
 module.exports = DownloadDataRouter;
