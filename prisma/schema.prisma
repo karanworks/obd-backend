@@ -257,6 +257,8 @@ model RawFormData{
   @@index(stateId)
   @@index(cityId)
   @@index(city)
+  @@index(salary)
+  @@index(salaryInNumbers)
 
 }
 
