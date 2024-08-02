@@ -90,14 +90,15 @@ class DownloadDataController {
       console.log("error while getting users", error);
     }
   }
+
   async downloadAllData(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
       if (loggedInUser) {
         console.time("DATABASE TIME");
         const groupedData = await prisma.$queryRaw`
-        SELECT state, stateId, 
-             COUNT(DISTINCT cityId) AS CityCount, 
+        SELECT state, stateId,
+             COUNT(DISTINCT cityId) AS CityCount,
              COUNT(id) as TotalDataCount
         FROM rawformdata
         GROUP BY state, stateId;

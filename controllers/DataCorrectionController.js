@@ -24,7 +24,14 @@ class DataCorrectionController {
         }),
         prisma.rawFormData.findFirst({
           where: {
-            salaryInNumbers: null,
+            AND: [
+              {
+                salary: {
+                  not: "",
+                },
+              },
+              { salaryInNumbers: null },
+            ],
           },
         }),
       ]);
@@ -78,43 +85,43 @@ class DataCorrectionController {
   //     console.time("DATA CORRECTION TIME");
 
   //     // Execute both queries in parallel
-  //     const [city, salary] = await Promise.all([
-  //       prisma.rawFormData.groupBy({
-  //         by: ["city"],
-  //         _count: {
-  //           id: true,
-  //         },
-  //         orderBy: {
-  //           _count: {
-  //             id: "desc",
-  //           },
-  //         },
-  //         where: {
-  //           cityId: null,
-  //         },
-  //         take: 1,
-  //       }),
-  //       prisma.rawFormData.groupBy({
-  //         by: ["salary"],
-  //         _count: {
-  //           id: true,
-  //         },
-  //         orderBy: {
-  //           _count: {
-  //             id: "desc",
-  //           },
-  //         },
-  //         where: {
-  //           salaryInNumbers: null,
-  //           salary: {
-  //             not: {
-  //               in: ["", "undefined"],
-  //             },
-  //           },
-  //         },
-  //         take: 1,
-  //       }),
-  //     ]);
+  //     // const [city, salary] = await Promise.all([
+  //     //   prisma.rawFormData.groupBy({
+  //     //     by: ["city"],
+  //     //     _count: {
+  //     //       id: true,
+  //     //     },
+  //     //     orderBy: {
+  //     //       _count: {
+  //     //         id: "desc",
+  //     //       },
+  //     //     },
+  //     //     where: {
+  //     //       cityId: null,
+  //     //     },
+  //     //     take: 1,
+  //     //   }),
+  //     //   prisma.rawFormData.groupBy({
+  //     //     by: ["salary"],
+  //     //     _count: {
+  //     //       id: true,
+  //     //     },
+  //     //     orderBy: {
+  //     //       _count: {
+  //     //         id: "desc",
+  //     //       },
+  //     //     },
+  //     //     where: {
+  //     //       salaryInNumbers: null,
+  //     //       salary: {
+  //     //         not: {
+  //     //           in: ["", "undefined"],
+  //     //         },
+  //     //       },
+  //     //     },
+  //     //     take: 1,
+  //     //   }),
+  //     // ]);
 
   //     console.timeEnd("DATA CORRECTION TIME");
 
@@ -160,6 +167,9 @@ class DataCorrectionController {
     try {
       const token = await getToken(req, res);
       const { salaryInNumbers, currentSalary } = req.body;
+
+      console.log("SALARY IN NUMBERS ->", salaryInNumbers);
+      console.log("CURRENT SALARY ->", currentSalary);
 
       if (token) {
         await prisma.rawFormData.updateMany({
