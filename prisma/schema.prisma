@@ -160,12 +160,12 @@ model FormStatus{
   id Int @id @default(autoincrement())
   formId Int
   formStatus String
+  bankStatus String?
   applicationNo String
   formType String
   addedBy Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
-
 }
 
 
@@ -326,4 +326,16 @@ model SalaryInThousands{
   value String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
+}
+
+model BankStatus{
+  id Int @id @default(autoincrement())
+  applicationNo String?
+  formId Int?
+  comment String
+  bankStatus String
+  status Int @default(1)
+  formType String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) 
 }
