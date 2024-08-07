@@ -32,33 +32,69 @@ class ApplicationReportController {
             let form;
 
             if (report.formType === "Credit Card") {
-              form = await prisma.creditCardForm.findFirst({
+              const currentForm = await prisma.creditCardForm.findFirst({
                 where: {
                   id: report.formId,
                   status: 1,
                 },
               });
+
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: currentForm.id,
+                  formType: report.formType,
+                },
+              });
+
+              form = { ...currentForm, previousBankStatuses };
             } else if (report.formType === "Loan") {
-              form = await prisma.loanForm.findFirst({
+              const currentForm = await prisma.loanForm.findFirst({
                 where: {
                   id: report.formId,
                   status: 1,
                 },
               });
+
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: currentForm.id,
+                  formType: report.formType,
+                },
+              });
+
+              form = { ...currentForm, previousBankStatuses };
             } else if (report.formType === "Insurance") {
-              form = await prisma.insuranceForm.findFirst({
+              const currentForm = await prisma.insuranceForm.findFirst({
                 where: {
                   id: report.formId,
                   status: 1,
                 },
               });
+
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: currentForm.id,
+                  formType: report.formType,
+                },
+              });
+
+              form = { ...currentForm, previousBankStatuses };
             } else if (report.formType === "Demat Account") {
-              form = await prisma.dematAccountForm.findFirst({
+              const currentForm = await prisma.dematAccountForm.findFirst({
                 where: {
                   id: report.formId,
                   status: 1,
                 },
               });
+
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: currentForm.id,
+                  formType: report.formType,
+                },
+              });
+
+              form = { ...currentForm, previousBankStatuses };
             }
 
             const formUser = await prisma.centerUser.findFirst({

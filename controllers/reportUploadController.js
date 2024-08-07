@@ -48,13 +48,24 @@ class ReportUploadController {
 
               const bankStatus = await prisma.bankStatus.findFirst({
                 where: {
-                  formId: creditCardForm.id,
+                  formId: report.formId,
                   formType: "Credit Card",
                   status: 1,
                 },
               });
 
-              form = { ...otherPropertiesOfCreditCardForm, ...bankStatus };
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: report.formId,
+                  formType: "Credit Card",
+                },
+              });
+
+              form = {
+                ...otherPropertiesOfCreditCardForm,
+                ...bankStatus,
+                previousBankStatuses,
+              };
             } else if (report.formType === "Loan") {
               const LoanForm = await prisma.loanForm.findFirst({
                 where: {
@@ -73,7 +84,18 @@ class ReportUploadController {
                 },
               });
 
-              form = { ...otherPropertiesOfLoanForm, ...bankStatus };
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: report.formId,
+                  formType: "Loan",
+                },
+              });
+
+              form = {
+                ...otherPropertiesOfLoanForm,
+                ...bankStatus,
+                previousBankStatuses,
+              };
             } else if (report.formType === "Insurance") {
               const insuranceForm = await prisma.insuranceForm.findFirst({
                 where: {
@@ -86,13 +108,24 @@ class ReportUploadController {
 
               const bankStatus = await prisma.bankStatus.findFirst({
                 where: {
-                  formId: creditCardForm.id,
+                  formId: report.formId,
                   formType: "Insurance",
                   status: 1,
                 },
               });
 
-              form = { ...otherPropertiesOfInsuranceForm, ...bankStatus };
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: report.formId,
+                  formType: "Insurance",
+                },
+              });
+
+              form = {
+                ...otherPropertiesOfInsuranceForm,
+                ...bankStatus,
+                previousBankStatuses,
+              };
             } else if (report.formType === "Demat Account") {
               const DematAccountForm = await prisma.dematAccountForm.findFirst({
                 where: {
@@ -106,13 +139,24 @@ class ReportUploadController {
 
               const bankStatus = await prisma.bankStatus.findFirst({
                 where: {
-                  formId: creditCardForm.id,
+                  formId: report.formId,
                   formType: "Demat Account",
                   status: 1,
                 },
               });
 
-              form = { ...otherPropertiesDematAccountForm, ...bankStatus };
+              const previousBankStatuses = await prisma.bankStatus.findMany({
+                where: {
+                  formId: report.formId,
+                  formType: "Demat Account",
+                },
+              });
+
+              form = {
+                ...otherPropertiesDematAccountForm,
+                ...bankStatus,
+                previousBankStatuses,
+              };
             }
 
             const formUser = await prisma.centerUser.findFirst({
@@ -160,8 +204,6 @@ class ReportUploadController {
             formId: parseInt(formId),
           },
         });
-
-        console.log("FORM STATUS TO BE UPDATED ->", formStatusToBeUpdated);
 
         if (formAlreadyExist) {
           const updatedBankStatus = await prisma.bankStatus.update({
