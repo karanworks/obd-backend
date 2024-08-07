@@ -14,5 +14,9 @@ ReportUploadRouter.post(
   "/report-upload/filter",
   ReportUploadController.reportUploadFilter
 );
+ReportUploadRouter.delete(
+  "/report-upload/bank-status/:bankStatusId/delete",
+  ReportUploadController.reportUploadDeleteStatus
+);
 
 module.exports = ReportUploadRouter;

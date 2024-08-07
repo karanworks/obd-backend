@@ -2,7 +2,6 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
-const { format } = require("path");
 
 class ReportUploadController {
   async reportUploadGet(req, res) {
@@ -45,6 +44,8 @@ class ReportUploadController {
                 },
               });
 
+              const { id, ...otherPropertiesOfCreditCardForm } = creditCardForm;
+
               const bankStatus = await prisma.bankStatus.findFirst({
                 where: {
                   formId: creditCardForm.id,
@@ -53,7 +54,7 @@ class ReportUploadController {
                 },
               });
 
-              form = { ...creditCardForm, ...bankStatus };
+              form = { ...otherPropertiesOfCreditCardForm, ...bankStatus };
             } else if (report.formType === "Loan") {
               const LoanForm = await prisma.loanForm.findFirst({
                 where: {
@@ -62,15 +63,17 @@ class ReportUploadController {
                 },
               });
 
+              const { id, ...otherPropertiesOfLoanForm } = LoanForm;
+
               const bankStatus = await prisma.bankStatus.findFirst({
                 where: {
-                  formId: creditCardForm.id,
+                  formId: report.formId,
                   formType: "Loan",
                   status: 1,
                 },
               });
 
-              form = { ...LoanForm, ...bankStatus };
+              form = { ...otherPropertiesOfLoanForm, ...bankStatus };
             } else if (report.formType === "Insurance") {
               const insuranceForm = await prisma.insuranceForm.findFirst({
                 where: {
@@ -78,6 +81,8 @@ class ReportUploadController {
                   status: 1,
                 },
               });
+
+              const { id, ...otherPropertiesOfInsuranceForm } = insuranceForm;
 
               const bankStatus = await prisma.bankStatus.findFirst({
                 where: {
@@ -87,7 +92,7 @@ class ReportUploadController {
                 },
               });
 
-              form = { ...insuranceForm, ...bankStatus };
+              form = { ...otherPropertiesOfInsuranceForm, ...bankStatus };
             } else if (report.formType === "Demat Account") {
               const DematAccountForm = await prisma.dematAccountForm.findFirst({
                 where: {
@@ -95,6 +100,9 @@ class ReportUploadController {
                   status: 1,
                 },
               });
+
+              const { id, ...otherPropertiesDematAccountForm } =
+                DematAccountForm;
 
               const bankStatus = await prisma.bankStatus.findFirst({
                 where: {
@@ -104,7 +112,7 @@ class ReportUploadController {
                 },
               });
 
-              form = { ...DematAccountForm, ...bankStatus };
+              form = { ...otherPropertiesDematAccountForm, ...bankStatus };
             }
 
             const formUser = await prisma.centerUser.findFirst({
@@ -132,20 +140,28 @@ class ReportUploadController {
       console.log("error while fetching application reports ->", error);
     }
   }
+
   async reportUploadUpdateStatus(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
       const { formId, formType, comment, bankStatus } = req.body;
-
-      console.log("UPDATE STATUS API CALLED ->", req.body);
 
       if (loggedInUser) {
         const formAlreadyExist = await prisma.bankStatus.findFirst({
           where: {
             formId: parseInt(formId),
             formType,
+            status: 1,
           },
         });
+        let formStatusToBeUpdated = await prisma.formStatus.findFirst({
+          where: {
+            formType,
+            formId: parseInt(formId),
+          },
+        });
+
+        console.log("FORM STATUS TO BE UPDATED ->", formStatusToBeUpdated);
 
         if (formAlreadyExist) {
           const updatedBankStatus = await prisma.bankStatus.update({
@@ -158,6 +174,15 @@ class ReportUploadController {
             },
           });
 
+          await prisma.formStatus.update({
+            where: {
+              id: formStatusToBeUpdated.id,
+            },
+            data: {
+              bankStatus: updatedBankStatus.bankStatus,
+            },
+          });
+
           response.success(res, "Form status updated!", { updatedBankStatus });
         } else {
           const updatedBankStatus = await prisma.bankStatus.create({
@@ -166,6 +191,15 @@ class ReportUploadController {
               formType,
               comment,
               bankStatus,
+            },
+          });
+
+          await prisma.formStatus.update({
+            where: {
+              id: formStatusToBeUpdated.id,
+            },
+            data: {
+              bankStatus: updatedBankStatus.bankStatus,
             },
           });
 
@@ -338,86 +372,37 @@ class ReportUploadController {
   async reportUploadDeleteStatus(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
-      const { formId, formType, comment, bankStatus } = req.body;
-
-      console.log("UPDATE STATUS API CALLED ->", req.body);
+      const { bankStatusId } = req.params;
 
       if (loggedInUser) {
-        let reportUploads;
+        const deletedBankStatus = await prisma.bankStatus.update({
+          where: {
+            id: parseInt(bankStatusId),
+          },
+          data: {
+            status: 0,
+          },
+        });
 
-        // if (loggedInUser.roleId === 1) {
-        //   reportUploads = await prisma.formStatus.findMany({
-        //     where: {
-        //       formStatus: "VKYC Done",
-        //     },
-        //   });
-        // } else {
-        //   const centerUser = await prisma.centerUser.findFirst({
-        //     where: {
-        //       email: loggedInUser.email,
-        //     },
-        //   });
+        let formStatusToBeUpdated = await prisma.formStatus.findFirst({
+          where: {
+            formType: deletedBankStatus.formType,
+            formId: parseInt(deletedBankStatus.formId),
+          },
+        });
 
-        //   reportUploads = await prisma.formStatus.findMany({
-        //     where: {
-        //       addedBy: centerUser.id,
-        //       formStatus: "VKYC Done",
-        //     },
-        //   });
-        // }
+        await prisma.formStatus.update({
+          where: {
+            id: formStatusToBeUpdated.id,
+          },
+          data: {
+            bankStatus: null,
+          },
+        });
 
-        // const reportUploadWithDetails = await Promise.all(
-        //   reportUploads?.map(async (report) => {
-        //     let form;
-
-        //     if (report.formType === "Credit Card") {
-        //       form = await prisma.creditCardForm.findFirst({
-        //         where: {
-        //           id: report.formId,
-        //           status: 1,
-        //         },
-        //       });
-        //     } else if (report.formType === "Loan") {
-        //       form = await prisma.loanForm.findFirst({
-        //         where: {
-        //           id: report.formId,
-        //           status: 1,
-        //         },
-        //       });
-        //     } else if (report.formType === "Insurance") {
-        //       form = await prisma.insuranceForm.findFirst({
-        //         where: {
-        //           id: report.formId,
-        //           status: 1,
-        //         },
-        //       });
-        //     } else if (report.formType === "Demat Account") {
-        //       form = await prisma.dematAccountForm.findFirst({
-        //         where: {
-        //           id: report.formId,
-        //           status: 1,
-        //         },
-        //       });
-        //     }
-
-        //     const formUser = await prisma.centerUser.findFirst({
-        //       where: {
-        //         id: form?.addedBy,
-        //       },
-        //     });
-
-        //     return {
-        //       formId: report.formId,
-        //       formStatus: report.formStatus,
-        //       applicationNo: report.applicationNo,
-        //       formType: report.formType,
-        //       ...form,
-        //       user: { ...formUser },
-        //     };
-        //   })
-        // );
-
-        response.success(res, "Fetched application reports!");
+        response.success(res, "Fetched application reports!", {
+          deletedBankStatus,
+        });
       }
     } catch (error) {
       console.log("error while fetching application reports ->", error);

@@ -70,6 +70,7 @@ class ApplicationReportController {
             return {
               formId: report.formId,
               formStatus: report.formStatus,
+              bankStatus: report.bankStatus,
               applicationNo: report.applicationNo,
               formType: report.formType,
               ...form,
