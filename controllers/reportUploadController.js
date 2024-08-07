@@ -2,6 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
+const xlsx = require("xlsx");
 
 class ReportUploadController {
   async reportUploadGet(req, res) {
@@ -247,6 +248,45 @@ class ReportUploadController {
 
           response.success(res, "Form status updated!", { updatedBankStatus });
         }
+      }
+    } catch (error) {
+      console.log("error while fetching reports data ->", error);
+    }
+  }
+
+  async reportUploadUpdateStatusWithFile(req, res) {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
+      const { bankName } = req.body;
+      const { buffer } = req.file;
+
+      if (loggedInUser) {
+        const workbook = xlsx.read(buffer, { type: "buffer" });
+
+        const sheetName = workbook.SheetNames[0];
+        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        await prisma.$transaction(async (prisma) => {
+          for (const record of jsonData) {
+            const { applicationNo, bankStatus, comment } = record;
+
+            // Update existing records with the same applicationNo
+            await prisma.bankStatus.updateMany({
+              where: { applicationNo: String(applicationNo) },
+              data: { status: 0 },
+            });
+
+            // Create new record
+            await prisma.bankStatus.create({
+              data: {
+                applicationNo: String(applicationNo),
+                bankStatus,
+                comment,
+                formType: "Credit Card",
+              },
+            });
+          }
+        });
       }
     } catch (error) {
       console.log("error while fetching reports data ->", error);

@@ -3,7 +3,6 @@ const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const xlsx = require("xlsx");
-const { time } = require("console");
 
 class UploadRawDataController {
   uploadRawDataPost = async (req, res) => {
@@ -16,7 +15,6 @@ class UploadRawDataController {
           return res.status(400).send("No file uploaded.");
         }
 
-        console.time("UPLOAD DATA TIME");
         const { buffer } = req.file;
 
         const workbook = xlsx.read(buffer, { type: "buffer" });

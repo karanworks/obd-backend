@@ -1,6 +1,9 @@
 const express = require("express");
 const ReportUploadRouter = express.Router({ mergeParams: true });
 const ReportUploadController = require("../controllers/reportUploadController");
+const multer = require("multer");
+
+const upload = multer();
 
 ReportUploadRouter.get(
   "/report-upload",
@@ -9,6 +12,11 @@ ReportUploadRouter.get(
 ReportUploadRouter.post(
   "/report-upload/update-status",
   ReportUploadController.reportUploadUpdateStatus
+);
+ReportUploadRouter.post(
+  "/report-upload/update-status/file",
+  upload.single("data"),
+  ReportUploadController.reportUploadUpdateStatusWithFile
 );
 ReportUploadRouter.post(
   "/report-upload/filter",
