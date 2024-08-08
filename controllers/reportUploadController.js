@@ -45,26 +45,30 @@ class ReportUploadController {
                 },
               });
 
-              const { id, ...otherPropertiesOfCreditCardForm } = creditCardForm;
+              // const { id, ...otherPropertiesOfCreditCardForm } = creditCardForm;
 
-              const bankStatus = await prisma.bankStatus.findFirst({
-                where: {
-                  formId: report.formId,
-                  formType: "Credit Card",
-                  status: 1,
-                },
-              });
+              // const bankStatus = await prisma.bankStatus.findFirst({
+              //   where: {
+              //     formId: report.formId,
+              //     formType: "Credit Card",
+              //     status: 1,
+              //   },
+              // });
 
               const previousBankStatuses = await prisma.bankStatus.findMany({
                 where: {
                   formId: report.formId,
                   formType: "Credit Card",
+                  status: 1,
+                },
+                orderBy: {
+                  createdAt: "asc",
                 },
               });
 
               form = {
-                ...otherPropertiesOfCreditCardForm,
-                ...bankStatus,
+                ...creditCardForm,
+                // ...bankStatus,
                 previousBankStatuses,
               };
             } else if (report.formType === "Loan") {
@@ -75,26 +79,31 @@ class ReportUploadController {
                 },
               });
 
-              const { id, ...otherPropertiesOfLoanForm } = LoanForm;
+              // const { id, ...otherPropertiesOfLoanForm } = LoanForm;
 
-              const bankStatus = await prisma.bankStatus.findFirst({
-                where: {
-                  formId: report.formId,
-                  formType: "Loan",
-                  status: 1,
-                },
-              });
+              // const bankStatus = await prisma.bankStatus.findFirst({
+              //   where: {
+              //     formId: report.formId,
+              //     formType: "Loan",
+              //     status: 1,
+              //   },
+              // });
 
               const previousBankStatuses = await prisma.bankStatus.findMany({
                 where: {
                   formId: report.formId,
                   formType: "Loan",
+                  status: 1,
+                },
+                orderBy: {
+                  createdAt: "asc",
                 },
               });
 
               form = {
-                ...otherPropertiesOfLoanForm,
-                ...bankStatus,
+                // ...otherPropertiesOfLoanForm,
+                ...LoanForm,
+                // ...bankStatus,
                 previousBankStatuses,
               };
             } else if (report.formType === "Insurance") {
@@ -105,26 +114,31 @@ class ReportUploadController {
                 },
               });
 
-              const { id, ...otherPropertiesOfInsuranceForm } = insuranceForm;
+              // const { id, ...otherPropertiesOfInsuranceForm } = insuranceForm;
 
-              const bankStatus = await prisma.bankStatus.findFirst({
-                where: {
-                  formId: report.formId,
-                  formType: "Insurance",
-                  status: 1,
-                },
-              });
+              // const bankStatus = await prisma.bankStatus.findFirst({
+              //   where: {
+              //     formId: report.formId,
+              //     formType: "Insurance",
+              //     status: 1,
+              //   },
+              // });
 
               const previousBankStatuses = await prisma.bankStatus.findMany({
                 where: {
                   formId: report.formId,
                   formType: "Insurance",
+                  status: 1,
+                },
+                orderBy: {
+                  createdAt: "asc",
                 },
               });
 
               form = {
-                ...otherPropertiesOfInsuranceForm,
-                ...bankStatus,
+                // ...otherPropertiesOfInsuranceForm,
+                ...insuranceForm,
+                // ...bankStatus,
                 previousBankStatuses,
               };
             } else if (report.formType === "Demat Account") {
@@ -135,27 +149,32 @@ class ReportUploadController {
                 },
               });
 
-              const { id, ...otherPropertiesDematAccountForm } =
-                DematAccountForm;
+              // const { id, ...otherPropertiesDematAccountForm } =
+              //   DematAccountForm;
 
-              const bankStatus = await prisma.bankStatus.findFirst({
-                where: {
-                  formId: report.formId,
-                  formType: "Demat Account",
-                  status: 1,
-                },
-              });
+              // const bankStatus = await prisma.bankStatus.findFirst({
+              //   where: {
+              //     formId: report.formId,
+              //     formType: "Demat Account",
+              //     status: 1,
+              //   },
+              // });
 
               const previousBankStatuses = await prisma.bankStatus.findMany({
                 where: {
                   formId: report.formId,
                   formType: "Demat Account",
+                  status: 1,
+                },
+                orderBy: {
+                  createdAt: "asc",
                 },
               });
 
               form = {
-                ...otherPropertiesDematAccountForm,
-                ...bankStatus,
+                // ...otherPropertiesDematAccountForm,
+                ...DematAccountForm,
+                // ...bankStatus,
                 previousBankStatuses,
               };
             }
@@ -207,11 +226,20 @@ class ReportUploadController {
         });
 
         if (formAlreadyExist) {
-          const updatedBankStatus = await prisma.bankStatus.update({
-            where: {
-              id: formAlreadyExist.id,
-            },
+          // delete previous bankStatus
+          // await prisma.bankStatus.update({
+          //   where: {
+          //     id: formAlreadyExist.id,
+          //   },
+          //   data: {
+          //     status: 0,
+          //   },
+          // });
+
+          const updatedBankStatus = await prisma.bankStatus.create({
             data: {
+              formId: parseInt(formId),
+              formType,
               comment,
               bankStatus,
             },
@@ -226,7 +254,16 @@ class ReportUploadController {
             },
           });
 
-          response.success(res, "Form status updated!", { updatedBankStatus });
+          const previousBankStatuses = await prisma.bankStatus.findMany({
+            where: {
+              formId: parseInt(formId),
+              formType,
+            },
+          });
+
+          response.success(res, "Form status updated!", {
+            updatedBankStatus: { ...updatedBankStatus, previousBankStatuses },
+          });
         } else {
           const updatedBankStatus = await prisma.bankStatus.create({
             data: {
@@ -246,7 +283,16 @@ class ReportUploadController {
             },
           });
 
-          response.success(res, "Form status updated!", { updatedBankStatus });
+          const previousBankStatuses = await prisma.bankStatus.findMany({
+            where: {
+              formId: parseInt(formId),
+              formType,
+            },
+          });
+
+          response.success(res, "Form status updated!", {
+            updatedBankStatus: { ...updatedBankStatus, previousBankStatuses },
+          });
         }
       }
     } catch (error) {
@@ -266,27 +312,27 @@ class ReportUploadController {
         const sheetName = workbook.SheetNames[0];
         const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        await prisma.$transaction(async (prisma) => {
-          for (const record of jsonData) {
-            const { applicationNo, bankStatus, comment } = record;
+        // await prisma.$transaction(async (prisma) => {
+        //   for (const record of jsonData) {
+        //     const { applicationNo, bankStatus, comment } = record;
 
-            // Update existing records with the same applicationNo
-            await prisma.bankStatus.updateMany({
-              where: { applicationNo: String(applicationNo) },
-              data: { status: 0 },
-            });
+        //     // Update existing records with the same applicationNo
+        //     await prisma.bankStatus.updateMany({
+        //       where: { applicationNo: String(applicationNo) },
+        //       data: { status: 0 },
+        //     });
 
-            // Create new record
-            await prisma.bankStatus.create({
-              data: {
-                applicationNo: String(applicationNo),
-                bankStatus,
-                comment,
-                formType: "Credit Card",
-              },
-            });
-          }
-        });
+        //     // Create new record
+        //     await prisma.bankStatus.create({
+        //       data: {
+        //         applicationNo: String(applicationNo),
+        //         bankStatus,
+        //         comment,
+        //         formType: "Credit Card",
+        //       },
+        //     });
+        //   }
+        // });
       }
     } catch (error) {
       console.log("error while fetching reports data ->", error);
@@ -466,6 +512,17 @@ class ReportUploadController {
           },
         });
 
+        const updatedFormStatus = await prisma.bankStatus.findFirst({
+          where: {
+            formType: deletedBankStatus.formType,
+            formId: parseInt(deletedBankStatus.formId),
+            status: 1,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        });
+
         let formStatusToBeUpdated = await prisma.formStatus.findFirst({
           where: {
             formType: deletedBankStatus.formType,
@@ -478,7 +535,10 @@ class ReportUploadController {
             id: formStatusToBeUpdated.id,
           },
           data: {
-            bankStatus: null,
+            bankStatus:
+              updatedFormStatus.length > 0
+                ? updatedFormStatus[updatedFormStatus.length - 1].bankStatus
+                : null,
           },
         });
 
