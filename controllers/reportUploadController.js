@@ -59,6 +59,7 @@ class ReportUploadController {
                 where: {
                   formId: report.formId,
                   formType: "Credit Card",
+                  bankId: report.bankId,
                   status: 1,
                 },
                 orderBy: {
@@ -93,6 +94,7 @@ class ReportUploadController {
                 where: {
                   formId: report.formId,
                   formType: "Loan",
+                  bankId: report.bankId,
                   status: 1,
                 },
                 orderBy: {
@@ -128,6 +130,7 @@ class ReportUploadController {
                 where: {
                   formId: report.formId,
                   formType: "Insurance",
+                  bankId: report.bankId,
                   status: 1,
                 },
                 orderBy: {
@@ -164,6 +167,7 @@ class ReportUploadController {
                 where: {
                   formId: report.formId,
                   formType: "Demat Account",
+                  bankId: report.bankId,
                   status: 1,
                 },
                 orderBy: {

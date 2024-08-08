@@ -43,6 +43,7 @@ class ApplicationReportController {
                 where: {
                   formId: currentForm.id,
                   formType: report.formType,
+                  bankId: report.bankId,
                 },
               });
 
@@ -59,6 +60,7 @@ class ApplicationReportController {
                 where: {
                   formId: currentForm.id,
                   formType: report.formType,
+                  bankId: report.bankId,
                 },
               });
 
@@ -75,6 +77,7 @@ class ApplicationReportController {
                 where: {
                   formId: currentForm.id,
                   formType: report.formType,
+                  bankId: report.bankId,
                 },
               });
 
@@ -91,6 +94,7 @@ class ApplicationReportController {
                 where: {
                   formId: currentForm.id,
                   formType: report.formType,
+                  bankId: report.bankId,
                 },
               });
 
