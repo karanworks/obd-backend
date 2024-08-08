@@ -73,6 +73,7 @@ class CreditCardFormController {
         income,
         panNo,
         formType,
+        bankId,
       } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
@@ -101,6 +102,7 @@ class CreditCardFormController {
             companyAddress,
             income,
             panNo,
+            bankId: parseInt(bankId),
             addedBy: centerUser.id,
           },
         });
@@ -112,6 +114,7 @@ class CreditCardFormController {
             formStatus: "",
             formType,
             addedBy: centerUser.id,
+            bankId: parseInt(bankId),
           },
         });
 

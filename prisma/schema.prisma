@@ -145,6 +145,7 @@ model CreditCardForm{
   companyAddress String
   income Int
   bankName String
+  bankId Int
   clientType String
   addedBy Int
   status Int @default(1)
@@ -163,6 +164,7 @@ model FormStatus{
   bankStatus String?
   applicationNo String
   formType String
+  bankId Int
   addedBy Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
@@ -321,6 +323,7 @@ model SalaryInLacs{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
+
 model SalaryInThousands{
   id Int @id @default(autoincrement())
   value String
@@ -334,8 +337,20 @@ model BankStatus{
   formId Int?
   comment String
   bankStatus String
+  bankId Int
   status Int @default(1)
   formType String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) 
+}
+
+model Dropdown{
+  id Int @id @default(autoincrement())
+  name String 
+  type String
+  sequence Int
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) 
+  
 }

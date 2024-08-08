@@ -24,6 +24,7 @@ const dataCorrectionRouter = require("./routes/dataCorrection");
 const obdDataRouter = require("./routes/obdData");
 const downloadDataRouter = require("./routes/downloadData");
 const reportUploadRouter = require("./routes/reportUpload");
+const bankDropdownRouter = require("./routes/bankDropdown");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -78,6 +79,7 @@ app.use("/", dataCorrectionRouter);
 app.use("/", obdDataRouter);
 app.use("/", downloadDataRouter);
 app.use("/", reportUploadRouter);
+app.use("/", bankDropdownRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

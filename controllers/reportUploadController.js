@@ -208,13 +208,15 @@ class ReportUploadController {
   async reportUploadUpdateStatus(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
-      const { formId, formType, comment, bankStatus } = req.body;
+      const { bankId, formId, formType, comment, bankStatus, applicationNo } =
+        req.body;
 
       if (loggedInUser) {
         const formAlreadyExist = await prisma.bankStatus.findFirst({
           where: {
             formId: parseInt(formId),
             formType,
+            bankId: parseInt(bankId),
             status: 1,
           },
         });
@@ -240,8 +242,10 @@ class ReportUploadController {
             data: {
               formId: parseInt(formId),
               formType,
+              bankId: parseInt(bankId),
               comment,
               bankStatus,
+              applicationNo,
             },
           });
 
@@ -269,8 +273,10 @@ class ReportUploadController {
             data: {
               formId: parseInt(formId),
               formType,
+              bankId: parseInt(bankId),
               comment,
               bankStatus,
+              applicationNo,
             },
           });
 
@@ -303,7 +309,7 @@ class ReportUploadController {
   async reportUploadUpdateStatusWithFile(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
-      const { bankName } = req.body;
+      const { bankId } = req.body;
       const { buffer } = req.file;
 
       if (loggedInUser) {
@@ -312,27 +318,40 @@ class ReportUploadController {
         const sheetName = workbook.SheetNames[0];
         const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        // await prisma.$transaction(async (prisma) => {
-        //   for (const record of jsonData) {
-        //     const { applicationNo, bankStatus, comment } = record;
+        const allStatusUpdate = await Promise.all(
+          jsonData?.map(async (status) => {
+            const formStatus = await prisma.formStatus.findFirst({
+              where: {
+                applicationNo: String(status.applicationNo),
+              },
+            });
 
-        //     // Update existing records with the same applicationNo
-        //     await prisma.bankStatus.updateMany({
-        //       where: { applicationNo: String(applicationNo) },
-        //       data: { status: 0 },
-        //     });
+            const updatedBankStatus = await prisma.bankStatus.create({
+              data: {
+                applicationNo: String(status.applicationNo),
+                comment: status.comment,
+                bankStatus: status.bankStatus,
+                formType: "Credit Card",
+                formId: formStatus.formId,
+                bankId: parseInt(bankId),
+              },
+            });
 
-        //     // Create new record
-        //     await prisma.bankStatus.create({
-        //       data: {
-        //         applicationNo: String(applicationNo),
-        //         bankStatus,
-        //         comment,
-        //         formType: "Credit Card",
-        //       },
-        //     });
-        //   }
-        // });
+            const updateFormStatus = await prisma.formStatus.update({
+              where: {
+                id: formStatus.id,
+              },
+              data: {
+                bankStatus: updatedBankStatus.bankStatus,
+              },
+            });
+
+            return updatedBankStatus;
+          })
+        );
+
+        console.log("STATUS UPDATE THROUGH FILE ->", allStatusUpdate);
+        response.success(res, "Status updated through file data");
       }
     } catch (error) {
       console.log("error while fetching reports data ->", error);
