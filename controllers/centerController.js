@@ -64,7 +64,7 @@ class CenterController {
             emailId,
             location,
             branchId,
-            userType: "NEED TO CHANGE LATER",
+            userType: parseInt(userType),
             password,
             status: 1,
             addedBy: loggedInUser.id,
@@ -129,7 +129,7 @@ class CenterController {
               emailId,
               location,
               branchId,
-              userType,
+              userType: parseInt(userType),
               password,
             },
           });

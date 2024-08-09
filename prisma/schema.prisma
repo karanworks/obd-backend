@@ -86,7 +86,7 @@ model Center {
   ownerName String
   mobileNumber String
   location String
-  userType String
+  userType Int
   emailId String
   password String
   branchId String

@@ -155,10 +155,6 @@ class AdminAuthController {
     try {
       const { name, email, password, roleId } = req.body;
 
-      console.log("USER NEED TO BE UPDATED ->", req.body);
-
-      const { userId } = req.params; // userId is not being used here but it has been used in other projects keeping it for future reference
-
       // finding user from id
       // USED THIS IN PREVIOUS PROJECTS, BUT HERE "userId" IS CENTERS USERS ID SO THAT I WILL SEARCH FOR USER THROUGH EMAIL TO UPDATE IT
       // const userFound = await prisma.user.findFirst({

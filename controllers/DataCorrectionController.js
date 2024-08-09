@@ -13,8 +13,6 @@ class DataCorrectionController {
         return response.error(res, "User not logged in.");
       }
 
-      console.time("DATA CORRECTION TIME");
-
       // Execute queries in parallel
       const [cityUnassigned, salaryUnassigned] = await Promise.all([
         prisma.rawFormData.findFirst({
@@ -54,8 +52,6 @@ class DataCorrectionController {
           },
         }),
       ]);
-
-      console.timeEnd("DATA CORRECTION TIME");
 
       response.success(res, "Current city with count fetched!", {
         currentCity: {
