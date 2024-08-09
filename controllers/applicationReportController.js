@@ -44,6 +44,7 @@ class ApplicationReportController {
                   formId: currentForm.id,
                   formType: report.formType,
                   bankId: report.bankId,
+                  status: 1,
                 },
               });
 
@@ -61,6 +62,7 @@ class ApplicationReportController {
                   formId: currentForm.id,
                   formType: report.formType,
                   bankId: report.bankId,
+                  status: 1,
                 },
               });
 
@@ -78,6 +80,7 @@ class ApplicationReportController {
                   formId: currentForm.id,
                   formType: report.formType,
                   bankId: report.bankId,
+                  status: 1,
                 },
               });
 
@@ -95,6 +98,7 @@ class ApplicationReportController {
                   formId: currentForm.id,
                   formType: report.formType,
                   bankId: report.bankId,
+                  status: 1,
                 },
               });
 

@@ -354,7 +354,6 @@ class ReportUploadController {
           })
         );
 
-        console.log("STATUS UPDATE THROUGH FILE ->", allStatusUpdate);
         response.success(res, "Status updated through file data");
       }
     } catch (error) {
@@ -535,7 +534,7 @@ class ReportUploadController {
           },
         });
 
-        const updatedFormStatus = await prisma.bankStatus.findFirst({
+        const updatedBankStatus = await prisma.bankStatus.findMany({
           where: {
             formType: deletedBankStatus.formType,
             formId: parseInt(deletedBankStatus.formId),
@@ -559,8 +558,8 @@ class ReportUploadController {
           },
           data: {
             bankStatus:
-              updatedFormStatus.length > 0
-                ? updatedFormStatus[updatedFormStatus.length - 1].bankStatus
+              updatedBankStatus.length > 0
+                ? updatedBankStatus[updatedBankStatus.length - 1].bankStatus
                 : null,
           },
         });
