@@ -322,7 +322,7 @@ class ReportUploadController {
         const sheetName = workbook.SheetNames[0];
         const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        const allStatusUpdate = await Promise.all(
+        const allBankStatusUpdate = await Promise.all(
           jsonData?.map(async (status) => {
             const formStatus = await prisma.formStatus.findFirst({
               where: {
@@ -354,7 +354,9 @@ class ReportUploadController {
           })
         );
 
-        response.success(res, "Status updated through file data");
+        response.success(res, "Status updated through file data", {
+          allBankStatusUpdate,
+        });
       }
     } catch (error) {
       console.log("error while fetching reports data ->", error);
