@@ -2,8 +2,6 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
-const getMenus = require("../utils/getMenus");
-const getToken = require("../utils/getToken");
 
 class CenterController {
   async centersGet(req, res) {
@@ -18,9 +16,9 @@ class CenterController {
         });
 
         const centers = await prisma.center.findMany({
-          where: {
-            status: 1,
-          },
+          // where: {
+          //   status: 1,
+          // },
         });
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
@@ -54,24 +52,54 @@ class CenterController {
       } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
+      const userIp = req.socket.remoteAddress;
+
+      const alreadyRegistered = await prisma.center.findFirst({
+        where: {
+          OR: [{ emailId }],
+        },
+      });
 
       if (loggedInUser) {
-        const newUser = await prisma.center.create({
-          data: {
-            centerName,
-            ownerName,
-            mobileNumber,
-            emailId,
-            location,
-            branchId,
-            userType: parseInt(userType),
-            password,
-            status: 1,
-            addedBy: loggedInUser.id,
-          },
-        });
+        if (alreadyRegistered) {
+          if (
+            alreadyRegistered.emailId === emailId ||
+            alreadyRegistered.mobileNumber === mobileNumber
+          ) {
+            response.error(
+              res,
+              "User already registered with this Email Or Mobile Number.",
+              alreadyRegistered
+            );
+          }
+        } else {
+          const newCenter = await prisma.center.create({
+            data: {
+              centerName,
+              ownerName,
+              mobileNumber,
+              emailId,
+              location,
+              branchId,
+              userType: parseInt(userType),
+              password,
+              status: 1,
+              addedBy: loggedInUser.id,
+            },
+          });
 
-        response.success(res, "Center registered successfully!", newUser);
+          const newUser = await prisma.user.create({
+            data: {
+              username: centerName,
+              email: emailId,
+              password: password,
+              roleId: parseInt(userType),
+              userIp,
+            },
+          });
+
+          response.success(res, "Center registered successfully!", newCenter);
+        }
       }
     } catch (error) {
       console.log("error while center registration ->", error);
@@ -101,15 +129,37 @@ class CenterController {
         },
       });
 
+      const alreadyRegistered = await prisma.center.findFirst({
+        where: {
+          OR: [{ emailId }],
+        },
+      });
+
       if (centerFound) {
-        if (status === 0) {
+        if (status === 0 || status === 1) {
           const updatedCenter = await prisma.center.update({
             where: {
               id: parseInt(centerId),
             },
 
             data: {
-              status: 0,
+              status,
+            },
+          });
+
+          // update the status of corresponding user so that he can't log in
+          const userToBeUpdated = await prisma.user.findFirst({
+            where: {
+              email: updatedCenter.emailId,
+            },
+          });
+
+          const updatedUser = await prisma.user.update({
+            where: {
+              id: userToBeUpdated.id,
+            },
+            data: {
+              status,
             },
           });
 
@@ -117,26 +167,56 @@ class CenterController {
             updatedCenter,
           });
         } else {
-          const updatedCenter = await prisma.center.update({
-            where: {
-              id: parseInt(centerId),
-            },
+          if (alreadyRegistered) {
+            if (
+              alreadyRegistered.emailId === emailId ||
+              alreadyRegistered.mobileNumber === mobileNumber
+            ) {
+              response.error(
+                res,
+                "Center already registered with this Email Or Mobile Number.",
+                alreadyRegistered
+              );
+            }
+          } else {
+            // update the details in user table as well
+            const userToBeUpdated = await prisma.user.findFirst({
+              where: {
+                email: centerFound.emailId,
+              },
+            });
 
-            data: {
-              centerName,
-              ownerName,
-              mobileNumber,
-              emailId,
-              location,
-              branchId,
-              userType: parseInt(userType),
-              password,
-            },
-          });
+            const updatedUser = await prisma.user.update({
+              where: {
+                id: userToBeUpdated.id,
+              },
+              data: {
+                username: centerName,
+                email: emailId,
+              },
+            });
 
-          response.success(res, "Center updated successfully!", {
-            updatedCenter,
-          });
+            const updatedCenter = await prisma.center.update({
+              where: {
+                id: parseInt(centerId),
+              },
+
+              data: {
+                centerName,
+                ownerName,
+                mobileNumber,
+                emailId,
+                location,
+                branchId,
+                userType: parseInt(userType),
+                password,
+              },
+            });
+
+            response.success(res, "Center updated successfully!", {
+              updatedCenter,
+            });
+          }
         }
       } else {
         response.error(res, "Center not found!");

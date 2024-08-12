@@ -86,6 +86,11 @@ class AdminAuthController {
         },
       });
 
+      // don't allow deactivated user to login
+      if (userFound.status === 0) {
+        return response.error(res, "Your account has been deactivated!");
+      }
+
       if (!userFound) {
         response.error(res, "No user found with this email!");
       } else if (password === userFound.password) {
@@ -153,7 +158,9 @@ class AdminAuthController {
 
   async userUpdatePatch(req, res) {
     try {
-      const { name, email, password, roleId } = req.body;
+      const { name, email, password, roleId, status } = req.body;
+
+      const { userId } = req.params;
 
       // finding user from id
       // USED THIS IN PREVIOUS PROJECTS, BUT HERE "userId" IS CENTERS USERS ID SO THAT I WILL SEARCH FOR USER THROUGH EMAIL TO UPDATE IT
@@ -162,6 +169,8 @@ class AdminAuthController {
       //     id: parseInt(userId),
       //   },
       // });
+
+      console.log("STATUS IS HERE ->", status);
 
       const userFound = await prisma.user.findFirst({
         where: {
@@ -176,11 +185,13 @@ class AdminAuthController {
           if (alreadyRegistered.email === email) {
             response.error(
               res,
-              "User already registered with this CRM Email.",
+              "User already registered with this Email.",
               alreadyRegistered
             );
           }
         } else {
+          // if (status === 0) {
+          // } else {
           const userToBeUpdated = await prisma.user.findFirst({
             where: {
               email,
@@ -202,6 +213,7 @@ class AdminAuthController {
           response.success(res, "User updated successfully!", {
             updatedUser,
           });
+          // }
         }
       } else {
         response.error(res, "User not found!");
@@ -287,6 +299,7 @@ class AdminAuthController {
       console.log("error while loggin in user, get method ", error);
     }
   }
+
   async adminLogoutGet(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);

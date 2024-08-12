@@ -6,7 +6,10 @@ adminAuthRouter.post("/login", adminAuthController.userLoginPost);
 adminAuthRouter.get("/login", adminAuthController.userLoginGet);
 adminAuthRouter.post("/register", adminAuthController.userRegisterPost);
 adminAuthRouter.post("/user/register", adminAuthController.userRegisterPost);
-adminAuthRouter.patch("/user/edit", adminAuthController.userUpdatePatch);
+adminAuthRouter.patch(
+  "/user/:userId/edit",
+  adminAuthController.userUpdatePatch
+);
 adminAuthRouter.delete(
   "/user/:userId/delete",
   adminAuthController.userRemoveDelete
