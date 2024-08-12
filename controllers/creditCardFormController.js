@@ -76,6 +76,8 @@ class CreditCardFormController {
         bankId,
       } = req.body;
 
+      console.log("REQ BODY FOR CREDIT CARD FORM ->", req.body);
+
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {
@@ -87,7 +89,7 @@ class CreditCardFormController {
 
         const formCreated = await prisma.creditCardForm.create({
           data: {
-            employeeName,
+            employeeName: employeeName ? employeeName : loggedInUser.username,
             bankName,
             clientType,
             fullName,

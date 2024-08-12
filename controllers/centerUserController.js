@@ -207,7 +207,10 @@ class CenterUserController {
             updatedCenterUser,
           });
         } else {
-          if (alreadyRegistered.id !== parseInt(centerUserId)) {
+          if (
+            alreadyRegistered &&
+            alreadyRegistered.id !== parseInt(centerUserId)
+          ) {
             if (
               alreadyRegistered.email === email ||
               alreadyRegistered.mobileNumber === mobileNumber

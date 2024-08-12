@@ -39,14 +39,18 @@ class ApplicationReportController {
                 },
               });
 
-              const previousBankStatuses = await prisma.bankStatus.findMany({
-                where: {
-                  formId: currentForm.id,
-                  formType: report.formType,
-                  bankId: report.bankId,
-                  status: 1,
-                },
-              });
+              let previousBankStatuses;
+
+              if (currentForm) {
+                previousBankStatuses = await prisma.bankStatus.findMany({
+                  where: {
+                    formId: currentForm.id,
+                    formType: report.formType,
+                    bankId: report.bankId,
+                    status: 1,
+                  },
+                });
+              }
 
               form = { ...currentForm, previousBankStatuses };
             } else if (report.formType === "Loan") {
