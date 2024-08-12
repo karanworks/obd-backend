@@ -167,7 +167,7 @@ class CenterController {
             updatedCenter,
           });
         } else {
-          if (alreadyRegistered) {
+          if (alreadyRegistered.id !== parseInt(centerFound.id)) {
             if (
               alreadyRegistered.emailId === emailId ||
               alreadyRegistered.mobileNumber === mobileNumber
@@ -193,6 +193,7 @@ class CenterController {
               data: {
                 username: centerName,
                 email: emailId,
+                password,
               },
             });
 

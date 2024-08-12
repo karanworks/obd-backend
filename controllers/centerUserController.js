@@ -79,30 +79,64 @@ class CenterUserController {
       } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
+      const userIp = req.socket.remoteAddress;
 
       const { centerId } = req.params;
 
-      if (loggedInUser) {
-        const newUser = await prisma.centerUser.create({
-          data: {
-            name,
-            email,
-            password,
-            location,
-            centerName,
-            mobileNumber,
-            age,
-            aadharNumber,
-            panNo,
-            branchId,
-            centerId: parseInt(centerId),
-            userType: parseInt(userType),
-            status: 1,
-            addedBy: loggedInUser.id,
-          },
-        });
+      const alreadyRegistered = await prisma.centerUser.findFirst({
+        where: {
+          OR: [{ email }],
+        },
+      });
 
-        response.success(res, "Center User registered successfully!", newUser);
+      if (loggedInUser) {
+        if (alreadyRegistered) {
+          if (
+            alreadyRegistered.email === email ||
+            alreadyRegistered.mobileNumber === mobileNumber
+          ) {
+            response.error(
+              res,
+              "User already registered with this Email Or Mobile Number.",
+              alreadyRegistered
+            );
+          }
+        } else {
+          const newCenterUser = await prisma.centerUser.create({
+            data: {
+              name,
+              email,
+              password,
+              location,
+              centerName,
+              mobileNumber,
+              age,
+              aadharNumber,
+              panNo,
+              branchId,
+              centerId: parseInt(centerId),
+              userType: parseInt(userType),
+              status: 1,
+              addedBy: loggedInUser.id,
+            },
+          });
+
+          const newUser = await prisma.user.create({
+            data: {
+              username: name,
+              email,
+              password: password,
+              roleId: parseInt(userType),
+              userIp,
+            },
+          });
+
+          response.success(
+            res,
+            "Center User registered successfully!",
+            newCenterUser
+          );
+        }
       }
     } catch (error) {
       console.log("error while center registration ->", error);
@@ -128,17 +162,41 @@ class CenterUserController {
 
       const { centerId, centerUserId } = req.params;
 
+      // console.log(status, centerId, centerUserId);
+
       const centerUserFound = await prisma.centerUser.findFirst({
         where: {
           id: parseInt(centerUserId),
         },
       });
 
+      const alreadyRegistered = await prisma.centerUser.findFirst({
+        where: {
+          OR: [{ email }],
+        },
+      });
+
       if (centerUserFound) {
-        if (status === 0) {
+        if (status === 0 || status === 1) {
           const updatedCenterUser = await prisma.centerUser.update({
             where: {
               id: centerUserFound.id,
+            },
+            data: {
+              status,
+            },
+          });
+
+          // update the status of corresponding user so that he can't log in
+          const userToBeUpdated = await prisma.user.findFirst({
+            where: {
+              email: updatedCenterUser.email,
+            },
+          });
+
+          const updatedUser = await prisma.user.update({
+            where: {
+              id: userToBeUpdated.id,
             },
             data: {
               status,
@@ -149,30 +207,61 @@ class CenterUserController {
             updatedCenterUser,
           });
         } else {
-          const updatedCenterUser = await prisma.centerUser.update({
-            where: {
-              id: centerUserFound.id,
-            },
-            data: {
-              name,
-              email,
-              password,
-              location,
-              centerName,
-              mobileNumber,
-              age,
-              aadharNumber,
-              panNo,
-              branchId,
-              centerId: parseInt(centerId),
-              userType: parseInt(userType),
-              status,
-            },
-          });
+          if (alreadyRegistered.id !== parseInt(centerUserId)) {
+            if (
+              alreadyRegistered.email === email ||
+              alreadyRegistered.mobileNumber === mobileNumber
+            ) {
+              response.error(
+                res,
+                "User already registered with this Email Or Mobile Number.",
+                alreadyRegistered
+              );
+            }
+          } else {
+            // update the details in user table as well
+            const userToBeUpdated = await prisma.user.findFirst({
+              where: {
+                email: centerUserFound.email,
+              },
+            });
 
-          response.success(res, "Center user updated successfully!", {
-            updatedCenterUser,
-          });
+            const updatedUser = await prisma.user.update({
+              where: {
+                id: userToBeUpdated.id,
+              },
+              data: {
+                username: name,
+                email,
+                password,
+              },
+            });
+
+            const updatedCenterUser = await prisma.centerUser.update({
+              where: {
+                id: centerUserFound.id,
+              },
+              data: {
+                name,
+                email,
+                password,
+                location,
+                centerName,
+                mobileNumber,
+                age,
+                aadharNumber,
+                panNo,
+                branchId,
+                centerId: parseInt(centerId),
+                userType: parseInt(userType),
+                status,
+              },
+            });
+
+            response.success(res, "Center user updated successfully!", {
+              updatedCenterUser,
+            });
+          }
         }
       } else {
         response.error(res, "Center user not found!");
