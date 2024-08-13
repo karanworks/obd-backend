@@ -76,8 +76,6 @@ class CreditCardFormController {
         bankId,
       } = req.body;
 
-      console.log("REQ BODY FOR CREDIT CARD FORM ->", req.body);
-
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {

@@ -30,14 +30,11 @@ class CenterUserController {
 
         let users;
         if (loggedInUser.roleId === 1) {
-          users = await prisma.centerUser.findMany({
-            where: { status: 1 },
-          });
+          users = await prisma.centerUser.findMany({});
         } else {
           users = await prisma.centerUser.findMany({
             where: {
               addedBy: loggedInUser.id,
-              status: 1,
             },
           });
         }
