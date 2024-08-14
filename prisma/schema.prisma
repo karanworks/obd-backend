@@ -354,3 +354,22 @@ model Dropdown{
   updatedAt DateTime @default(now()) 
   
 }
+
+model DailyDialerReport{
+  id Int @id @default(autoincrement())
+  campaign String
+  agentId String
+  agentName String
+  sip Int
+  phoneNumber String
+  callType String
+  startTime String
+  endTime String
+  callHandlingTime String
+  talkTime String
+  wrapupDuration String
+  disposition String
+  subDisposition String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) 
+}
