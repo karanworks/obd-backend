@@ -26,6 +26,7 @@ const downloadDataRouter = require("./routes/downloadData");
 const reportUploadRouter = require("./routes/reportUpload");
 const bankDropdownRouter = require("./routes/bankDropdown");
 const dailyReportUploadRouter = require("./routes/dailyReportUpload");
+const dailyReportRouter = require("./routes/dailyReport");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -82,6 +83,7 @@ app.use("/", downloadDataRouter);
 app.use("/", reportUploadRouter);
 app.use("/", bankDropdownRouter);
 app.use("/", dailyReportUploadRouter);
+app.use("/", dailyReportRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
