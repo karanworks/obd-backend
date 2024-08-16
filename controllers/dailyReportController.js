@@ -40,12 +40,20 @@ class DailyReportController {
                   formStatus: "VKYC Done",
                 },
               });
+
+              const interestedClients = await prisma.formStatus.count({
+                where: {
+                  addedBy: userData.id,
+                  formStatus: "",
+                },
+              });
               return {
                 ...item,
                 attempts: Number(item.attempts),
                 uniqueAttempts: Number(item.uniqueAttempts),
                 userData,
                 vkycDoneCount,
+                interestedClients,
               };
             })
           );
@@ -81,12 +89,19 @@ class DailyReportController {
                   formStatus: "VKYC Done",
                 },
               });
+              const interestedClients = await prisma.formStatus.count({
+                where: {
+                  addedBy: userData.id,
+                  formStatus: "",
+                },
+              });
               return {
                 ...item,
                 attempts: Number(item.attempts),
                 uniqueAttempts: Number(item.uniqueAttempts),
                 userData,
                 vkycDoneCount,
+                interestedClients,
               };
             })
           );
