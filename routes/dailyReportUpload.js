@@ -5,6 +5,11 @@ const multer = require("multer");
 
 const upload = multer();
 
+DailyReportUploadRouter.get(
+  "/daily-report-upload",
+  DailyReportUploadController.dailyReportUploadGet
+);
+
 DailyReportUploadRouter.post(
   "/daily-report-upload",
   upload.single("data"),

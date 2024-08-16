@@ -5,6 +5,25 @@ const getLoggedInUser = require("../utils/getLoggedInUser");
 const xlsx = require("xlsx");
 
 class DailyReportUploadController {
+  dailyReportUploadGet = async (req, res) => {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
+
+      if (loggedInUser) {
+        const groupedDataByDate = await prisma.dailyDialerReport.groupBy({
+          by: ["createdAt"],
+          _count: true,
+        });
+
+        response.success(res, "Data Report Uploaded successfully!", {
+          groupedDataByDate,
+        });
+      }
+    } catch (error) {
+      console.log("error while daily report upload  ->", error);
+    }
+  };
+
   dailyReportUploadPost = async (req, res) => {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
