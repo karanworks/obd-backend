@@ -20,16 +20,35 @@ class DailyReportController {
           SELECT
             agentName,
             COUNT(phoneNumber) AS attempts,
-            COUNT(DISTINCT phoneNumber) AS uniqueAttempts
+            COUNT(DISTINCT phoneNumber) AS uniqueAttempts,
+            agentId,
+             TIME_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(WrapupDuration))), '%H:%i:%s') AS totalTalkTime
           FROM dailyDialerReport
           GROUP BY agentId, agentName;
         `;
 
-          const dailyReport = result.map((item) => ({
-            ...item,
-            attempts: Number(item.attempts),
-            uniqueAttempts: Number(item.uniqueAttempts),
-          }));
+          const dailyReport = await Promise.all(
+            result.map(async (item) => {
+              const userData = await prisma.centerUser.findFirst({
+                where: {
+                  agentId: item.agentId,
+                },
+              });
+              const vkycDoneCount = await prisma.formStatus.count({
+                where: {
+                  addedBy: userData.id,
+                  formStatus: "VKYC Done",
+                },
+              });
+              return {
+                ...item,
+                attempts: Number(item.attempts),
+                uniqueAttempts: Number(item.uniqueAttempts),
+                userData,
+                vkycDoneCount,
+              };
+            })
+          );
 
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
@@ -42,16 +61,35 @@ class DailyReportController {
           SELECT
             agentName,
             COUNT(phoneNumber) AS attempts,
-            COUNT(DISTINCT phoneNumber) AS uniqueAttempts
+            COUNT(DISTINCT phoneNumber) AS uniqueAttempts,
+            agentId,
+            TIME_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(WrapupDuration))), '%H:%i:%s') AS totalTalkTime
           FROM dailyDialerReport
           GROUP BY agentId, agentName;
         `;
 
-          const dailyReport = result.map((item) => ({
-            ...item,
-            attempts: Number(item.attempts),
-            uniqueAttempts: Number(item.uniqueAttempts),
-          }));
+          const dailyReport = await Promise.all(
+            result.map(async (item) => {
+              const userData = await prisma.centerUser.findFirst({
+                where: {
+                  agentId: item.agentId,
+                },
+              });
+              const vkycDoneCount = await prisma.formStatus.count({
+                where: {
+                  addedBy: userData.id,
+                  formStatus: "VKYC Done",
+                },
+              });
+              return {
+                ...item,
+                attempts: Number(item.attempts),
+                uniqueAttempts: Number(item.uniqueAttempts),
+                userData,
+                vkycDoneCount,
+              };
+            })
+          );
           response.success(res, "Daily Report fetched!", {
             ...adminDataWithoutPassword,
             dailyReport,

@@ -114,6 +114,7 @@ model CenterUser{
   name String
   email String
   password String
+  agentId String @unique
   mobileNumber String
   centerId Int
   centerName String
