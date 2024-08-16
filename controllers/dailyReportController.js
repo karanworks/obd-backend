@@ -22,7 +22,7 @@ class DailyReportController {
             COUNT(phoneNumber) AS attempts,
             COUNT(DISTINCT phoneNumber) AS uniqueAttempts,
             agentId,
-             TIME_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(WrapupDuration))), '%H:%i:%s') AS totalTalkTime
+             TIME_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(talkTime))), '%H:%i:%s') AS totalTalkTime
           FROM dailyDialerReport
           GROUP BY agentId, agentName;
         `;
@@ -71,7 +71,7 @@ class DailyReportController {
             COUNT(phoneNumber) AS attempts,
             COUNT(DISTINCT phoneNumber) AS uniqueAttempts,
             agentId,
-            TIME_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(WrapupDuration))), '%H:%i:%s') AS totalTalkTime
+            TIME_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(talkTime))), '%H:%i:%s') AS totalTalkTime
           FROM dailyDialerReport
           GROUP BY agentId, agentName;
         `;
