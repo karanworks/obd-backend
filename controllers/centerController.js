@@ -21,11 +21,26 @@ class CenterController {
           // },
         });
 
+        const centerWithUsers = await Promise.all(
+          centers?.map(async (center) => {
+            const centerUsers = await prisma.centerUser.findMany({
+              where: {
+                centerId: center.id,
+              },
+            });
+
+            return {
+              ...center,
+              centerUsers,
+            };
+          })
+        );
+
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Centers fetched!", {
           ...adminDataWithoutPassword,
-          centers,
+          centers: centerWithUsers,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
