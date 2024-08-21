@@ -105,6 +105,9 @@ class DailyReportController {
               };
             })
           );
+
+          const { password, ...adminDataWithoutPassword } = loggedInUser;
+
           response.success(res, "Daily Report fetched!", {
             ...adminDataWithoutPassword,
             dailyReport,
