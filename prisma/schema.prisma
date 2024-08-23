@@ -80,51 +80,34 @@ model RoleAssign{
   updatedAt DateTime @default(now())
 }
 
-model Center {
+model Team {
   id Int @id @default(autoincrement())
-  centerName String
-  ownerName String
-  mobileNumber String
-  location String
-  userType Int
-  emailId String
+  teamName String
+  email String
   password String
-  branchId String
+  userType Int
   status Int?
   addedBy Int? 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
 
-model BankCode{
+model Employee{
   id Int @id @default(autoincrement())
-  centerName String
-  bankName String
-  userNameCode String
+  employeeName String
+  email String
   password String
-  userStatus String?
-  addedBy Int? 
+  userType Int
+  teamId Int
   status Int @default(1)
+  addedBy Int? 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
-
-model CenterUser{
+model Forms{
   id Int @id @default(autoincrement())
-  name String
-  email String
-  password String
-  agentId String @unique
-  mobileNumber String
-  centerId Int
-  centerName String
-  age Int
-  aadharNumber String
-  panNo String
-  location String
-  branchId String
-  userType Int
-  status Int @default(1)
+  clientName String
+  mobileNo String
   addedBy Int? 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  

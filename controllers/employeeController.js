@@ -6,8 +6,8 @@ const getMenus = require("../utils/getMenus");
 const getToken = require("../utils/getToken");
 const { parse } = require("path");
 
-class CenterUserController {
-  async centerUsersGet(req, res) {
+class EmployeeController {
+  async employeesGet(req, res) {
     try {
       const token = req.cookies.token;
 
@@ -18,21 +18,17 @@ class CenterUserController {
           },
         });
 
-        const centers = await prisma.center.findMany({
+        const teams = await prisma.team.findMany({
           where: {
-            // addedBy: loggedInUser.id,
             status: 1,
           },
         });
 
-        // these center users are going to be used while filling the form so that employee can be selected, for more info go to form filling page
-        const centerUsers = await prisma.centerUser.findMany({});
-
-        let users;
+        let employees;
         if (loggedInUser.roleId === 1) {
-          users = await prisma.centerUser.findMany({});
+          employees = await prisma.employee.findMany({});
         } else {
-          users = await prisma.centerUser.findMany({
+          employees = await prisma.employee.findMany({
             where: {
               addedBy: loggedInUser.id,
             },
@@ -41,47 +37,31 @@ class CenterUserController {
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-        response.success(res, "Center User fetched!", {
+        response.success(res, "Employee fetched!", {
           ...adminDataWithoutPassword,
-          users,
-          centers,
-          centerUsers,
+          employees,
+          teams,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
         res.status(401).json({
-          message: "center user not already logged in.",
+          message: "employee not already logged in.",
           status: "failure",
         });
       }
     } catch (error) {
-      console.log("error while getting centers ", error);
+      console.log("error while getting employee ", error);
     }
   }
 
-  async centerUserCreatePost(req, res) {
+  async employeeCreatePost(req, res) {
     try {
-      const {
-        name,
-        email,
-        password,
-        agentId,
-        location,
-        centerName,
-        mobileNumber,
-        age,
-        aadharNumber,
-        panNo,
-        branchId,
-        userType,
-      } = req.body;
+      const { employeeName, email, password, teamId } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
       const userIp = req.socket.remoteAddress;
 
-      const { centerId } = req.params;
-
-      const alreadyRegistered = await prisma.centerUser.findFirst({
+      const alreadyRegistered = await prisma.employee.findFirst({
         where: {
           OR: [{ email }],
         },
@@ -100,21 +80,13 @@ class CenterUserController {
             );
           }
         } else {
-          const newCenterUser = await prisma.centerUser.create({
+          const newEmployee = await prisma.employee.create({
             data: {
-              name,
+              employeeName,
               email,
               password,
-              agentId,
-              location,
-              centerName,
-              mobileNumber,
-              age,
-              aadharNumber,
-              panNo,
-              branchId,
-              centerId: parseInt(centerId),
-              userType: parseInt(userType),
+              teamId: parseInt(teamId),
+              userType: 3,
               status: 1,
               addedBy: loggedInUser.id,
             },
@@ -122,65 +94,51 @@ class CenterUserController {
 
           const newUser = await prisma.user.create({
             data: {
-              username: name,
+              username: employeeName,
               email,
               password: password,
-              roleId: parseInt(userType),
+              roleId: 3,
               userIp,
             },
           });
 
           response.success(
             res,
-            "Center User registered successfully!",
-            newCenterUser
+            "Employee registered successfully!",
+            newEmployee
           );
         }
       }
     } catch (error) {
-      console.log("error while center registration ->", error);
+      console.log("error while employee registration ->", error);
     }
   }
 
-  async centerUserUpdatePatch(req, res) {
+  async employeeUpdatePatch(req, res) {
     try {
-      const {
-        name,
-        email,
-        password,
-        agentId,
-        location,
-        centerName,
-        mobileNumber,
-        age,
-        aadharNumber,
-        panNo,
-        branchId,
-        userType,
-        status,
-      } = req.body;
+      const { employeeName, email, password, status } = req.body;
 
-      const { centerId, centerUserId } = req.params;
+      console.log("EMPLOYEE STATUS UPDATE ->", status);
 
-      // console.log(status, centerId, centerUserId);
+      const { teamId, employeeId } = req.params;
 
-      const centerUserFound = await prisma.centerUser.findFirst({
+      const employeeFound = await prisma.employee.findFirst({
         where: {
-          id: parseInt(centerUserId),
+          id: parseInt(employeeId),
         },
       });
 
-      const alreadyRegistered = await prisma.centerUser.findFirst({
+      const alreadyRegistered = await prisma.employee.findFirst({
         where: {
           OR: [{ email }],
         },
       });
 
-      if (centerUserFound) {
+      if (employeeFound) {
         if (status === 0 || status === 1) {
-          const updatedCenterUser = await prisma.centerUser.update({
+          const updatedEmployee = await prisma.employee.update({
             where: {
-              id: centerUserFound.id,
+              id: employeeFound.id,
             },
             data: {
               status,
@@ -190,7 +148,7 @@ class CenterUserController {
           // update the status of corresponding user so that he can't log in
           const userToBeUpdated = await prisma.user.findFirst({
             where: {
-              email: updatedCenterUser.email,
+              email: updatedEmployee.email,
             },
           });
 
@@ -203,21 +161,18 @@ class CenterUserController {
             },
           });
 
-          return response.success(res, "Center user removed successfully!", {
-            updatedCenterUser,
+          return response.success(res, "Employee user removed successfully!", {
+            updatedEmployee,
           });
         } else {
           if (
             alreadyRegistered &&
-            alreadyRegistered.id !== parseInt(centerUserId)
+            alreadyRegistered.id !== parseInt(employeeId)
           ) {
-            if (
-              alreadyRegistered.email === email ||
-              alreadyRegistered.mobileNumber === mobileNumber
-            ) {
+            if (alreadyRegistered.email === email) {
               response.error(
                 res,
-                "User already registered with this Email Or Mobile Number.",
+                "User already registered with this Email.",
                 alreadyRegistered
               );
             }
@@ -225,7 +180,7 @@ class CenterUserController {
             // update the details in user table as well
             const userToBeUpdated = await prisma.user.findFirst({
               where: {
-                email: centerUserFound.email,
+                email: employeeFound.email,
               },
             });
 
@@ -240,38 +195,30 @@ class CenterUserController {
               },
             });
 
-            const updatedCenterUser = await prisma.centerUser.update({
+            const updatedEmployee = await prisma.employee.update({
               where: {
-                id: centerUserFound.id,
+                id: employeeFound.id,
               },
               data: {
-                name,
+                employeeName,
                 email,
                 password,
-                agentId,
-                location,
-                centerName,
-                mobileNumber,
-                age,
-                aadharNumber,
-                panNo,
-                branchId,
-                centerId: parseInt(centerId),
+                teamId: parseInt(teamId),
                 userType: parseInt(userType),
                 status,
               },
             });
 
-            response.success(res, "Center user updated successfully!", {
-              updatedCenterUser,
+            response.success(res, "Employee updated successfully!", {
+              updatedEmployee,
             });
           }
         }
       } else {
-        response.error(res, "Center user not found!");
+        response.error(res, "Employee user not found!");
       }
     } catch (error) {
-      console.log("error while updating center controller", error);
+      console.log("error while updating employee controller", error);
     }
   }
 
@@ -305,4 +252,4 @@ class CenterUserController {
   // }
 }
 
-module.exports = new CenterUserController();
+module.exports = new EmployeeController();

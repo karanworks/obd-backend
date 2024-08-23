@@ -8,9 +8,9 @@ const homeRouter = require("./routes/home");
 const adminAuthRouter = require("./routes/adminAuth");
 const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
-const centerRouter = require("./routes/center");
+const teamRouter = require("./routes/team");
 const bankCodeRouter = require("./routes/bankCode");
-const centerUser = require("./routes/centerUser");
+const employeeRouter = require("./routes/employee");
 const loanFormRouter = require("./routes/loanForm");
 const insuranceFormRouter = require("./routes/insuranceForm");
 const creditCardFormRouter = require("./routes/creditCardForm");
@@ -38,14 +38,14 @@ app.use(express.json());
 // cors connection
 app.use(
   cors({
-    origin: "http://localhost:3006",
+    origin: "http://localhost:3009",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3006");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3009");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, PUT, POST, PATCH, DELETE"
@@ -65,8 +65,8 @@ app.use("/", adminAuthRouter);
 app.use("/", adminUsersRouter);
 app.use("/", roleRouter);
 app.use("/", mappingRouter);
-app.use("/", centerRouter);
-app.use("/", centerUser);
+app.use("/", teamRouter);
+app.use("/", employeeRouter);
 app.use("/", bankCodeRouter);
 app.use("/", creditCardFormRouter);
 app.use("/", formStatusRouter);
