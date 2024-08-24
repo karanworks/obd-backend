@@ -24,13 +24,19 @@ class EmployeeController {
           },
         });
 
+        const loggedInUserTeam = await prisma.team.findFirst({
+          where: {
+            email: loggedInUser.email,
+          },
+        });
+
         let employees;
         if (loggedInUser.roleId === 1) {
           employees = await prisma.employee.findMany({});
         } else {
           employees = await prisma.employee.findMany({
             where: {
-              addedBy: loggedInUser.id,
+              teamId: loggedInUserTeam.id,
             },
           });
         }
@@ -67,15 +73,24 @@ class EmployeeController {
         },
       });
 
+      let addingTeamId;
+
+      if (loggedInUser.roleId === 2) {
+        const team = await prisma.team.findFirst({
+          where: {
+            email: loggedInUser.email,
+          },
+        });
+
+        addingTeamId = team.id;
+      }
+
       if (loggedInUser) {
         if (alreadyRegistered) {
-          if (
-            alreadyRegistered.email === email ||
-            alreadyRegistered.mobileNumber === mobileNumber
-          ) {
+          if (alreadyRegistered.email === email) {
             response.error(
               res,
-              "User already registered with this Email Or Mobile Number.",
+              "User already registered with this Email.",
               alreadyRegistered
             );
           }
@@ -85,14 +100,14 @@ class EmployeeController {
               employeeName,
               email,
               password,
-              teamId: parseInt(teamId),
+              teamId: addingTeamId ? addingTeamId : parseInt(teamId),
               userType: 3,
               status: 1,
               addedBy: loggedInUser.id,
             },
           });
 
-          const newUser = await prisma.user.create({
+          await prisma.user.create({
             data: {
               username: employeeName,
               email,
@@ -117,8 +132,6 @@ class EmployeeController {
   async employeeUpdatePatch(req, res) {
     try {
       const { employeeName, email, password, status } = req.body;
-
-      console.log("EMPLOYEE STATUS UPDATE ->", status);
 
       const { teamId, employeeId } = req.params;
 
@@ -189,7 +202,7 @@ class EmployeeController {
                 id: userToBeUpdated.id,
               },
               data: {
-                username: name,
+                username: employeeName,
                 email,
                 password,
               },
@@ -204,7 +217,6 @@ class EmployeeController {
                 email,
                 password,
                 teamId: parseInt(teamId),
-                userType: parseInt(userType),
                 status,
               },
             });
