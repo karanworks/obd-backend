@@ -21,9 +21,24 @@ class HomeController {
         if (loggedInUser.roleId === 1) {
           const teams = await prisma.team.findMany({});
 
+          const teamWithEmployees = await Promise.all(
+            teams.map(async (team) => {
+              const employees = await prisma.employee.findMany({
+                where: {
+                  teamId: team.id,
+                },
+              });
+
+              return {
+                ...team,
+                employees,
+              };
+            })
+          );
+
           response.success(res, "Teams fetched!", {
             ...adminDataWithoutPassword,
-            teams,
+            teamWithEmployees,
           });
         } else if (loggedInUser.roleId === 2) {
           const team = await prisma.team.findFirst({
