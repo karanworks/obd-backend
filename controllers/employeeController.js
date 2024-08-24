@@ -98,7 +98,7 @@ class EmployeeController {
           const newEmployee = await prisma.employee.create({
             data: {
               employeeName,
-              email,
+              email: email.toLowerCase(),
               password,
               teamId: addingTeamId ? addingTeamId : parseInt(teamId),
               userType: 3,
@@ -110,7 +110,7 @@ class EmployeeController {
           await prisma.user.create({
             data: {
               username: employeeName,
-              email,
+              email: email.toLowerCase(),
               password: password,
               roleId: 3,
               userIp,
@@ -161,7 +161,7 @@ class EmployeeController {
           // update the status of corresponding user so that he can't log in
           const userToBeUpdated = await prisma.user.findFirst({
             where: {
-              email: updatedEmployee.email,
+              email: updatedEmployee.email.toLowerCase(),
             },
           });
 
@@ -193,7 +193,7 @@ class EmployeeController {
             // update the details in user table as well
             const userToBeUpdated = await prisma.user.findFirst({
               where: {
-                email: employeeFound.email,
+                email: employeeFound.email.toLowerCase(),
               },
             });
 
@@ -203,7 +203,7 @@ class EmployeeController {
               },
               data: {
                 username: employeeName,
-                email,
+                email: email.toLowerCase(),
                 password,
               },
             });
@@ -214,7 +214,7 @@ class EmployeeController {
               },
               data: {
                 employeeName,
-                email,
+                email: email.toLowerCase(),
                 password,
                 teamId: parseInt(teamId),
                 status,
