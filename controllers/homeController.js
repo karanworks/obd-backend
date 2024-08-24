@@ -57,6 +57,17 @@ class HomeController {
             ...adminDataWithoutPassword,
             teamMembers,
           });
+        } else if (loggedInUser.roleId === 3) {
+          const employee = await prisma.employee.findFirst({
+            where: {
+              email: loggedInUser.email,
+            },
+          });
+
+          response.success(res, "Team Members fetched!", {
+            ...adminDataWithoutPassword,
+            employee,
+          });
         }
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
