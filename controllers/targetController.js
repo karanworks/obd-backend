@@ -42,8 +42,6 @@ class TargetController {
     try {
       const { teamId, month, target } = req.body;
 
-      console.log("TARGET API CALLED ->", req.body);
-
       const loggedInUser = await getLoggedInUser(req, res);
 
       let addingTeamId;
@@ -59,10 +57,13 @@ class TargetController {
       }
 
       if (loggedInUser) {
+        const today = new Date();
+
         const newTarget = await prisma.target.create({
           data: {
             teamId,
             month,
+            year: today.getFullYear(),
             target,
           },
         });
@@ -108,35 +109,6 @@ class TargetController {
       console.log("error while updating target controller", error);
     }
   }
-
-  // async centerUserRemoveDelete(req, res) {
-  //   try {
-  //     const { centerId, centerUserId } = req.params;
-
-  //     // finding user from userId
-  //     const centerUserFound = await prisma.centerUser.findFirst({
-  //       where: {
-  //         id: parseInt(centerUserId),
-  //       },
-  //     });
-
-  //     if (centerUserFound) {
-  //       const deletedCenterUser = await prisma.centerUser.delete({
-  //         where: {
-  //           id: centerUserFound.id,
-  //         },
-  //       });
-
-  //       response.success(res, "Center user deleted successfully!", {
-  //         deletedCenterUser,
-  //       });
-  //     } else {
-  //       response.error(res, "Center does not exist! ");
-  //     }
-  //   } catch (error) {
-  //     console.log("error while deleting center user ", error);
-  //   }
-  // }
 }
 
 module.exports = new TargetController();

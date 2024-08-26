@@ -17,21 +17,6 @@ class TeamController {
 
         const teams = await prisma.team.findMany({});
 
-        // const centerWithUsers = await Promise.all(
-        //   centers?.map(async (center) => {
-        //     const centerUsers = await prisma.centerUser.findMany({
-        //       where: {
-        //         centerId: center.id,
-        //       },
-        //     });
-
-        //     return {
-        //       ...center,
-        //       centerUsers,
-        //     };
-        //   })
-        // );
-
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Teams fetched!", {
@@ -208,35 +193,6 @@ class TeamController {
       console.log("error while updating team controller", error);
     }
   }
-
-  // async centerRemoveDelete(req, res) {
-  //   try {
-  //     const { centerId } = req.params;
-
-  //     // finding user from userId
-  //     const centerFound = await prisma.center.findFirst({
-  //       where: {
-  //         id: parseInt(centerId),
-  //       },
-  //     });
-
-  //     if (centerFound) {
-  //       const deletedCenter = await prisma.center.delete({
-  //         where: {
-  //           id: parseInt(centerId),
-  //         },
-  //       });
-
-  //       response.success(res, "Center deleted successfully!", {
-  //         deletedCenter,
-  //       });
-  //     } else {
-  //       response.error(res, "Center does not exist! ");
-  //     }
-  //   } catch (error) {
-  //     console.log("error while deleting center ", error);
-  //   }
-  // }
 }
 
 module.exports = new TeamController();

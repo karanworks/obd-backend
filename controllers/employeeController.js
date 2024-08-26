@@ -233,35 +233,6 @@ class EmployeeController {
       console.log("error while updating employee controller", error);
     }
   }
-
-  // async centerUserRemoveDelete(req, res) {
-  //   try {
-  //     const { centerId, centerUserId } = req.params;
-
-  //     // finding user from userId
-  //     const centerUserFound = await prisma.centerUser.findFirst({
-  //       where: {
-  //         id: parseInt(centerUserId),
-  //       },
-  //     });
-
-  //     if (centerUserFound) {
-  //       const deletedCenterUser = await prisma.centerUser.delete({
-  //         where: {
-  //           id: centerUserFound.id,
-  //         },
-  //       });
-
-  //       response.success(res, "Center user deleted successfully!", {
-  //         deletedCenterUser,
-  //       });
-  //     } else {
-  //       response.error(res, "Center does not exist! ");
-  //     }
-  //   } catch (error) {
-  //     console.log("error while deleting center user ", error);
-  //   }
-  // }
 }
 
 module.exports = new EmployeeController();

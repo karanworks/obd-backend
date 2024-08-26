@@ -110,6 +110,7 @@ model Target{
   id Int @id @default(autoincrement())
   teamId Int
   month String
+  year Int
   target Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  

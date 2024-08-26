@@ -1,8 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
-const getLoggedInUser = require("../utils/getLoggedInUser");
-const { log } = require("node:console");
 
 class HomeController {
   async homeGet(req, res) {
@@ -29,15 +27,35 @@ class HomeController {
                 },
               });
 
+              const today = new Date();
+              const monthNames = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+              ];
+              const month = monthNames[today.getMonth()];
+              const year = today.getFullYear();
+
               const target = await prisma.target.findFirst({
                 where: {
                   teamId: team.id,
+                  month,
+                  year,
                 },
               });
 
               return {
                 ...team,
-                target: target.target,
+                target: target && target.target,
                 employees,
               };
             })
