@@ -10,24 +10,7 @@ const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
 const teamRouter = require("./routes/team");
 const targetRouter = require("./routes/target");
-const bankCodeRouter = require("./routes/bankCode");
 const employeeRouter = require("./routes/employee");
-const loanFormRouter = require("./routes/loanForm");
-const insuranceFormRouter = require("./routes/insuranceForm");
-const creditCardFormRouter = require("./routes/creditCardForm");
-const dematAccountFormRouter = require("./routes/dematAccountForm");
-const formStatusRouter = require("./routes/formStatus");
-const applicationReportRouter = require("./routes/applicationReport");
-const pendingFormRouter = require("./routes/pendingForms");
-const formPermissionsRouter = require("./routes/formPermissions");
-const uploadRawDataRouter = require("./routes/uploadRawData");
-const dataCorrectionRouter = require("./routes/dataCorrection");
-const obdDataRouter = require("./routes/obdData");
-const downloadDataRouter = require("./routes/downloadData");
-const reportUploadRouter = require("./routes/reportUpload");
-const bankDropdownRouter = require("./routes/bankDropdown");
-const dailyReportUploadRouter = require("./routes/dailyReportUpload");
-const dailyReportRouter = require("./routes/dailyReport");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -69,23 +52,6 @@ app.use("/", mappingRouter);
 app.use("/", teamRouter);
 app.use("/", targetRouter);
 app.use("/", employeeRouter);
-app.use("/", bankCodeRouter);
-app.use("/", creditCardFormRouter);
-app.use("/", formStatusRouter);
-app.use("/", applicationReportRouter);
-app.use("/", pendingFormRouter);
-app.use("/", loanFormRouter);
-app.use("/", insuranceFormRouter);
-app.use("/", dematAccountFormRouter);
-app.use("/", formPermissionsRouter);
-app.use("/", uploadRawDataRouter);
-app.use("/", dataCorrectionRouter);
-app.use("/", obdDataRouter);
-app.use("/", downloadDataRouter);
-app.use("/", reportUploadRouter);
-app.use("/", bankDropdownRouter);
-app.use("/", dailyReportUploadRouter);
-app.use("/", dailyReportRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
