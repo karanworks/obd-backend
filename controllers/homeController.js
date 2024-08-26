@@ -29,8 +29,15 @@ class HomeController {
                 },
               });
 
+              const target = await prisma.target.findFirst({
+                where: {
+                  teamId: team.id,
+                },
+              });
+
               return {
                 ...team,
+                target: target.target,
                 employees,
               };
             })
