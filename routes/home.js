@@ -1,9 +1,7 @@
 const express = require("express");
-const router = express.Router()
+const HomeRouter = express.Router({ mergeParams: true });
+const HomeController = require("../controllers/homeController");
 
-router.get("/", (req, res) => {
-    res.send("Yup its working...")
-})
+HomeRouter.get("/home", HomeController.homeGet);
 
-
-module.exports =  router
+module.exports = HomeRouter;

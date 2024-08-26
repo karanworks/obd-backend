@@ -5,7 +5,7 @@ const EmployeeController = require("../controllers/employeeController");
 EmployeeRouter.get("/employees", EmployeeController.employeesGet);
 EmployeeRouter.post("/employee/create", EmployeeController.employeeCreatePost);
 EmployeeRouter.patch(
-  "team/:teamId/employee/:employeeId/edit",
+  "/team/:teamId/employee/:employeeId/edit",
   EmployeeController.employeeUpdatePatch
 );
 // EmployeeRouter.delete(

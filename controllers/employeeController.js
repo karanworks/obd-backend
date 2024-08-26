@@ -24,13 +24,19 @@ class EmployeeController {
           },
         });
 
+        const loggedInUserTeam = await prisma.team.findFirst({
+          where: {
+            email: loggedInUser.email,
+          },
+        });
+
         let employees;
         if (loggedInUser.roleId === 1) {
           employees = await prisma.employee.findMany({});
         } else {
           employees = await prisma.employee.findMany({
             where: {
-              addedBy: loggedInUser.id,
+              teamId: loggedInUserTeam.id,
             },
           });
         }
@@ -67,15 +73,24 @@ class EmployeeController {
         },
       });
 
+      let addingTeamId;
+
+      if (loggedInUser.roleId === 2) {
+        const team = await prisma.team.findFirst({
+          where: {
+            email: loggedInUser.email,
+          },
+        });
+
+        addingTeamId = team.id;
+      }
+
       if (loggedInUser) {
         if (alreadyRegistered) {
-          if (
-            alreadyRegistered.email === email ||
-            alreadyRegistered.mobileNumber === mobileNumber
-          ) {
+          if (alreadyRegistered.email === email) {
             response.error(
               res,
-              "User already registered with this Email Or Mobile Number.",
+              "User already registered with this Email.",
               alreadyRegistered
             );
           }
@@ -83,19 +98,19 @@ class EmployeeController {
           const newEmployee = await prisma.employee.create({
             data: {
               employeeName,
-              email,
+              email: email.toLowerCase(),
               password,
-              teamId: parseInt(teamId),
+              teamId: addingTeamId ? addingTeamId : parseInt(teamId),
               userType: 3,
               status: 1,
               addedBy: loggedInUser.id,
             },
           });
 
-          const newUser = await prisma.user.create({
+          await prisma.user.create({
             data: {
               username: employeeName,
-              email,
+              email: email.toLowerCase(),
               password: password,
               roleId: 3,
               userIp,
@@ -117,8 +132,6 @@ class EmployeeController {
   async employeeUpdatePatch(req, res) {
     try {
       const { employeeName, email, password, status } = req.body;
-
-      console.log("EMPLOYEE STATUS UPDATE ->", status);
 
       const { teamId, employeeId } = req.params;
 
@@ -148,7 +161,7 @@ class EmployeeController {
           // update the status of corresponding user so that he can't log in
           const userToBeUpdated = await prisma.user.findFirst({
             where: {
-              email: updatedEmployee.email,
+              email: updatedEmployee.email.toLowerCase(),
             },
           });
 
@@ -180,7 +193,7 @@ class EmployeeController {
             // update the details in user table as well
             const userToBeUpdated = await prisma.user.findFirst({
               where: {
-                email: employeeFound.email,
+                email: employeeFound.email.toLowerCase(),
               },
             });
 
@@ -189,8 +202,8 @@ class EmployeeController {
                 id: userToBeUpdated.id,
               },
               data: {
-                username: name,
-                email,
+                username: employeeName,
+                email: email.toLowerCase(),
                 password,
               },
             });
@@ -201,10 +214,9 @@ class EmployeeController {
               },
               data: {
                 employeeName,
-                email,
+                email: email.toLowerCase(),
                 password,
                 teamId: parseInt(teamId),
-                userType: parseInt(userType),
                 status,
               },
             });

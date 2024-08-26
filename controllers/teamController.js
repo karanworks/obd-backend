@@ -75,7 +75,7 @@ class TeamController {
           const newTeam = await prisma.team.create({
             data: {
               teamName,
-              email,
+              email: email.toLowerCase(),
               password,
               status: 1,
               userType: 2,
@@ -87,7 +87,7 @@ class TeamController {
           await prisma.user.create({
             data: {
               username: teamName,
-              email,
+              email: email.toLowerCase(),
               password,
               roleId: 2,
               userIp,
@@ -169,7 +169,7 @@ class TeamController {
             // update the details in user table as well
             const userToBeUpdated = await prisma.user.findFirst({
               where: {
-                email: teamFound.email,
+                email: teamFound.email.toLowerCase(),
               },
             });
 
@@ -179,7 +179,7 @@ class TeamController {
               },
               data: {
                 username: teamName,
-                email,
+                email: email.toLowerCase(),
                 password,
               },
             });
@@ -191,7 +191,7 @@ class TeamController {
 
               data: {
                 teamName,
-                email,
+                email: email.toLowerCase(),
                 password,
               },
             });
