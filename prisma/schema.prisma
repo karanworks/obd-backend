@@ -104,11 +104,13 @@ model Employee{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
-model Forms{
+
+
+model Target{
   id Int @id @default(autoincrement())
-  clientName String
-  mobileNo String
-  addedBy Int? 
+  teamId Int
+  month String
+  target Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
