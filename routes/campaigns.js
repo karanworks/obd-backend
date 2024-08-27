@@ -30,5 +30,9 @@ CampaignRouter.patch(
   "/campaign/:campaignId/edit",
   CampaignController.campaignUpdatePatch
 );
+CampaignRouter.patch(
+  "/campaign/:campaignId/remove",
+  CampaignController.campaignsRemoveDelete
+);
 
 module.exports = CampaignRouter;

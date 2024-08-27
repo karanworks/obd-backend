@@ -2,6 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
+const { parse } = require("path");
 
 class CampaignsController {
   async campaignsGet(req, res) {
@@ -15,7 +16,11 @@ class CampaignsController {
           },
         });
 
-        const campaigns = await prisma.campaigns.findMany({});
+        const campaigns = await prisma.campaigns.findMany({
+          where: {
+            status: 1,
+          },
+        });
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
@@ -130,6 +135,50 @@ class CampaignsController {
       }
     } catch (error) {
       console.log("error while updating team controller", error);
+    }
+  }
+
+  async campaignsRemoveDelete(req, res) {
+    try {
+      const token = req.cookies.token;
+      const { campaignId } = req.params;
+
+      if (token) {
+        const loggedInUser = await prisma.user.findFirst({
+          where: {
+            token: parseInt(token),
+          },
+        });
+
+        const campaignToBeDeleted = await prisma.campaigns.findFirst({
+          where: {
+            id: parseInt(campaignId),
+          },
+        });
+
+        const removedCampaign = await prisma.campaigns.update({
+          where: {
+            id: campaignToBeDeleted.id,
+          },
+          data: {
+            status: 0,
+          },
+        });
+
+        const { password, ...adminDataWithoutPassword } = loggedInUser;
+
+        response.success(res, "Campaigns fetched!", {
+          ...adminDataWithoutPassword,
+          removedCampaign,
+        });
+      } else {
+        // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
+        res
+          .status(401)
+          .json({ message: "user not already logged in.", status: "failure" });
+      }
+    } catch (error) {
+      console.log("error while removing campaign", error);
     }
   }
 }
