@@ -80,38 +80,15 @@ model RoleAssign{
   updatedAt DateTime @default(now())
 }
 
-model Team {
+model Campaigns {
   id Int @id @default(autoincrement())
-  teamName String
-  email String
-  password String
-  userType Int
-  status Int?
-  addedBy Int? 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())  
-}
-
-model Employee{
-  id Int @id @default(autoincrement())
-  employeeName String
-  email String
-  password String
-  userType Int
-  teamId Int
+  campaignName String
+  channels Int
+  welcomeMessageText String
+  invalidMessageText String
+  timeOutMessageText String
   status Int @default(1)
   addedBy Int? 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())  
-}
-
-
-model Target{
-  id Int @id @default(autoincrement())
-  teamId Int
-  month String
-  year Int
-  target Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
