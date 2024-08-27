@@ -50,7 +50,7 @@ class CampaignsController {
         const newCampaign = await prisma.campaigns.create({
           data: {
             campaignName,
-            channels,
+            channels: parseInt(channels),
             welcomeMessageText,
             invalidMessageText,
             timeOutMessageText,
