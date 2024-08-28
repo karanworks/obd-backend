@@ -2,7 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
-const { parse } = require("path");
+const fs = require("fs");
+const path = require("path");
 
 class CampaignsController {
   async campaignsGet(req, res) {

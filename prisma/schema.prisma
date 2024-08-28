@@ -93,3 +93,15 @@ model Campaigns {
   updatedAt DateTime @default(now())  
 }
 
+model Design {
+   id Int @id @default(autoincrement())
+   key Int
+   messageText String?
+   messageAudio String?
+   mobileNumber String?
+   campaignId Int
+   status Int @default(1)
+   addedBy Int?
+   createdAt DateTime @default(now())
+   updatedAt DateTime @default(now())  
+}

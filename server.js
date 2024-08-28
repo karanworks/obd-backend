@@ -9,6 +9,7 @@ const adminAuthRouter = require("./routes/adminAuth");
 const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
 const campaignsRouter = require("./routes/campaigns");
+const designRouter = require("./routes/design");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -48,6 +49,7 @@ app.use("/", adminUsersRouter);
 app.use("/", roleRouter);
 app.use("/", mappingRouter);
 app.use("/", campaignsRouter);
+app.use("/", designRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
