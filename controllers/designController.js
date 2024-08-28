@@ -2,13 +2,13 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
-const fs = require("fs");
-const path = require("path");
 
 class DesignController {
   async designsGet(req, res) {
     try {
       const token = req.cookies.token;
+
+      const { campaignId } = req.params;
 
       if (token) {
         const loggedInUser = await prisma.user.findFirst({
@@ -19,6 +19,7 @@ class DesignController {
 
         const designs = await prisma.design.findMany({
           where: {
+            campaignId: parseInt(campaignId),
             status: 1,
           },
         });

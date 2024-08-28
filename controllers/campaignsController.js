@@ -65,6 +65,21 @@ class CampaignsController {
           },
         });
 
+        const dirPath = path.join(__dirname, "..", "conf");
+
+        const fileName =
+          newCampaign.campaignName.split(" ").join("_") + ".conf";
+
+        const filePath = path.join(dirPath, fileName);
+
+        fs.writeFile(filePath, newCampaign.campaignName, "utf8", (err) => {
+          if (err) {
+            console.error("Error creating or writing to file:", err);
+          } else {
+            console.log("File created and written successfully.");
+          }
+        });
+
         response.success(res, "Campaign registered successfully!", newCampaign);
       }
     } catch (error) {

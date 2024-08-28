@@ -17,7 +17,7 @@ const upload = multer({ storage: storage });
 
 const audioUpload = upload.single("messageAudio");
 
-DesignRouter.get("/designs", DesignController.designsGet);
+DesignRouter.get("/campaign/:campaignId/designs", DesignController.designsGet);
 DesignRouter.post(
   "/design/create",
   audioUpload,
