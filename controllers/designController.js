@@ -217,7 +217,7 @@ class DesignController {
         designType === "Text"
           ? `same => n,agi(googletts.agi,"${designMessage}",en)\nsame => n,Hangup()`
           : designType === "Audio"
-          ? `same => n,Background(uploads/${designMessage})\nsame => n,Hangup()`
+          ? `same => n,Background(asterisk/audio/${designMessage})\nsame => n,Hangup()`
           : designType === "Mobile Number"
           ? 'same => n,agi(googletts.agi,"Please wait , while we are connecting your call to Agent",en)\n`same => n,Gosub(dial-gsm,s,1,(${designMessage}))`'
           : ""
@@ -226,7 +226,7 @@ class DesignController {
 
     lines.forEach((line) => {
       fs.appendFileSync(
-        `conf/${campaignName.split(" ").join("_")}.conf`,
+        `asterisk/dialplan/${campaignName.split(" ").join("_")}.conf`,
         line + "\n",
         "utf8",
         (err) => {

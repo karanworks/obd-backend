@@ -10,6 +10,7 @@ const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
 const campaignsRouter = require("./routes/campaigns");
 const designRouter = require("./routes/design");
+const runRouter = require("./routes/run");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -17,7 +18,7 @@ const roleRouter = require("./routes/roles");
 
 // parsing json
 app.use(express.json());
-app.use("/audio", express.static("uploads"));
+app.use("/audio", express.static("asterisk/audio"));
 
 // cors connection
 app.use(
@@ -51,6 +52,7 @@ app.use("/", roleRouter);
 app.use("/", mappingRouter);
 app.use("/", campaignsRouter);
 app.use("/", designRouter);
+app.use("/", runRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

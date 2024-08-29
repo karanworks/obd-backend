@@ -90,6 +90,8 @@ model Campaigns {
   invalidMessageAudio String?
   timeOutMessageText String?
   timeOutMessageAudio String?
+  confFileName String? // LOCATION
+  dialplanName String? // NAME ONLY
   status Int @default(1)
   addedBy Int? 
   createdAt DateTime @default(now())
@@ -107,4 +109,37 @@ model Design {
    addedBy Int?
    createdAt DateTime @default(now())
    updatedAt DateTime @default(now())  
+}
+
+model CampaignDataSetting{
+   id Int @id @default(autoincrement())
+   campaignId Int
+   workOnSunday Boolean @default(true)
+   workOnMonday Boolean @default(true)
+   workOnTuesday Boolean @default(true)
+   workOnThursday Boolean @default(true)
+   workOnFriday Boolean @default(true)
+   workOnSaturday Boolean @default(true)
+   timeStart String
+   timeEnd String
+   createdAt DateTime @default(now())
+   updatedAt DateTime @default(now())  
+
+}
+
+model CampaignDialingData{
+  id Int @id @default(autoincrement())
+  campaignDataSettingId Int
+  campaignId Int
+  phoneNumber String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
+}
+
+model CampaignDialingDataStatus{
+  id Int @id @default(autoincrement())
+  campaignDialingDataId Int
+  status Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())  
 }

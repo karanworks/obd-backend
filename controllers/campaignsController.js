@@ -77,7 +77,7 @@ class CampaignsController {
           response.error(
             res,
             "Campaign Already Registered With This Name!",
-            newCampaign
+            campaignAlreadyExist
           );
         }
 
@@ -223,7 +223,7 @@ class CampaignsController {
   }
 
   writeFile(newCampaign) {
-    const dirPath = path.join(__dirname, "..", "conf");
+    const dirPath = path.join(__dirname, "..", "asterisk/dialplan");
 
     const fileName = newCampaign.campaignName.split(" ").join("_") + ".conf";
 
@@ -281,7 +281,7 @@ class CampaignsController {
       `${
         welcomeMsg.type === "Text"
           ? `same => n,agi(googletts.agi,"${welcomeMsg.message}",en)`
-          : `same => n,Background(uploads/${welcomeMsg.message})`
+          : `same => n,Background(asterisk/audio/${welcomeMsg.message})`
       }`,
       "same => n,WaitExten(2)",
       "",
@@ -289,7 +289,7 @@ class CampaignsController {
       `${
         invalidMsg.type === "Text"
           ? `same => n,agi(googletts.agi,"${invalidMsg.message}",en)`
-          : `same => n,Background(uploads/${invalidMsg.message})`
+          : `same => n,Background(asterisk/audio/${invalidMsg.message})`
       }`,
       "same => n,Hangup()",
       "",
@@ -297,7 +297,7 @@ class CampaignsController {
       `${
         timeOutMsg.type === "Text"
           ? `same => n,agi(googletts.agi,"${timeOutMsg.message}",en)`
-          : `same => n,Background(uploads/${timeOutMsg.message})`
+          : `same => n,Background(asterisk/audio/${timeOutMsg.message})`
       }`,
       "same => n,Hangup()",
     ];
