@@ -84,9 +84,12 @@ model Campaigns {
   id Int @id @default(autoincrement())
   campaignName String
   channels Int
-  welcomeMessageText String
-  invalidMessageText String
-  timeOutMessageText String
+  welcomeMessageText String?
+  welcomeMessageAudio String?
+  invalidMessageText String?
+  invalidMessageAudio String?
+  timeOutMessageText String?
+  timeOutMessageAudio String?
   status Int @default(1)
   addedBy Int? 
   createdAt DateTime @default(now())
@@ -95,7 +98,7 @@ model Campaigns {
 
 model Design {
    id Int @id @default(autoincrement())
-   key Int
+   key String
    messageText String?
    messageAudio String?
    mobileNumber String?

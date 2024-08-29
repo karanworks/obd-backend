@@ -6,6 +6,15 @@ const fs = require("fs");
 const path = require("path");
 
 class CampaignsController {
+  // Added constructor because I wanted to separate the writeFile function's code to separate function, and I wanted to use "this.writeFile" syntax that's why to bind the this keyword I had to use the constructor
+  constructor() {
+    this.campaignsGet = this.campaignsGet.bind(this);
+    this.campaignCreatePost = this.campaignCreatePost.bind(this);
+    this.campaignUpdatePatch = this.campaignUpdatePatch.bind(this);
+    this.campaignsRemoveDelete = this.campaignsRemoveDelete.bind(this);
+    this.writeFile = this.writeFile.bind(this);
+  }
+
   async campaignsGet(req, res) {
     try {
       const token = req.cookies.token;
@@ -53,32 +62,47 @@ class CampaignsController {
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {
+        const audioFiles = req.files;
+        // const audioProperties = Object.keys(req.files);
+
+        const baseUrl = "http://localhost:3008/audio";
+
+        const campaignAlreadyExist = await prisma.campaigns.findFirst({
+          where: {
+            campaignName,
+          },
+        });
+
+        if (campaignAlreadyExist) {
+          response.error(
+            res,
+            "Campaign Already Registered With This Name!",
+            newCampaign
+          );
+        }
+
         const newCampaign = await prisma.campaigns.create({
           data: {
             campaignName,
             channels: parseInt(channels),
             welcomeMessageText,
+            welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
+              ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
+              : null,
             invalidMessageText,
+            invalidMessageAudio: audioFiles["invalidMessageAudio"]
+              ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
+              : null,
             timeOutMessageText,
+            timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
+              ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
+              : null,
             status: 1,
             addedBy: loggedInUser.id,
           },
         });
 
-        const dirPath = path.join(__dirname, "..", "conf");
-
-        const fileName =
-          newCampaign.campaignName.split(" ").join("_") + ".conf";
-
-        const filePath = path.join(dirPath, fileName);
-
-        fs.writeFile(filePath, newCampaign.campaignName, "utf8", (err) => {
-          if (err) {
-            console.error("Error creating or writing to file:", err);
-          } else {
-            console.log("File created and written successfully.");
-          }
-        });
+        this.writeFile(newCampaign);
 
         response.success(res, "Campaign registered successfully!", newCampaign);
       }
@@ -196,6 +220,97 @@ class CampaignsController {
     } catch (error) {
       console.log("error while removing campaign", error);
     }
+  }
+
+  writeFile(newCampaign) {
+    const dirPath = path.join(__dirname, "..", "conf");
+
+    const fileName = newCampaign.campaignName.split(" ").join("_") + ".conf";
+
+    const filePath = path.join(dirPath, fileName);
+
+    let welcomeMsg = {
+      message: "",
+      type: "",
+    };
+
+    let invalidMsg = {
+      message: "",
+      type: "",
+    };
+
+    let timeOutMsg = {
+      message: "",
+      type: "",
+    };
+
+    if (newCampaign.welcomeMessageText) {
+      welcomeMsg["message"] = newCampaign.welcomeMessageText;
+      welcomeMsg["type"] = "Text";
+    } else if (newCampaign.welcomeMessageAudio) {
+      const urlParts = newCampaign.welcomeMessageAudio.split("/");
+
+      welcomeMsg["message"] = urlParts[urlParts.length - 1];
+      welcomeMsg["type"] = "Audio";
+    }
+
+    if (newCampaign.invalidMessageText) {
+      invalidMsg["message"] = newCampaign.invalidMessageText;
+      invalidMsg["type"] = "Text";
+    } else if (newCampaign.invalidMessageAudio) {
+      const urlParts = newCampaign.invalidMessageAudio.split("/");
+
+      invalidMsg["message"] = urlParts[urlParts.length - 1];
+      invalidMsg["type"] = "Audio";
+    }
+
+    if (newCampaign.timeOutMessageText) {
+      timeOutMsg["message"] = newCampaign.timeOutMessageText;
+      timeOutMsg["type"] = "Text";
+    } else if (newCampaign.timeOutMessageAudio) {
+      const urlParts = newCampaign.timeOutMessageAudio.split("/");
+
+      timeOutMsg["message"] = urlParts[urlParts.length - 1];
+      timeOutMsg["type"] = "Audio";
+    }
+
+    const lines = [
+      `[${newCampaign.campaignName.split(" ").join("_")}]`,
+      "exten => _X.,1,Answer()",
+      "",
+      `${
+        welcomeMsg.type === "Text"
+          ? `same => n,agi(googletts.agi,"${welcomeMsg.message}",en)`
+          : `same => n,Background(uploads/${welcomeMsg.message})`
+      }`,
+      "same => n,WaitExten(2)",
+      "",
+      'exten => i,1,noOp("Invalid Option choosen")',
+      `${
+        invalidMsg.type === "Text"
+          ? `same => n,agi(googletts.agi,"${invalidMsg.message}",en)`
+          : `same => n,Background(uploads/${invalidMsg.message})`
+      }`,
+      "same => n,Hangup()",
+      "",
+      'exten => t,1,NoOp("TimeOut")',
+      `${
+        timeOutMsg.type === "Text"
+          ? `same => n,agi(googletts.agi,"${timeOutMsg.message}",en)`
+          : `same => n,Background(uploads/${timeOutMsg.message})`
+      }`,
+      "same => n,Hangup()",
+    ];
+
+    lines.forEach((line, index) => {
+      fs.appendFileSync(filePath, line + "\n", "utf8", (err) => {
+        if (err) {
+          console.error("Error creating or writing to file:", err);
+        } else {
+          console.log("File created and written successfully.");
+        }
+      });
+    });
   }
 }
 

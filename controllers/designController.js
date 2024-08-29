@@ -2,8 +2,18 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
+const fs = require("fs");
+const path = require("path");
 
 class DesignController {
+  constructor() {
+    this.designsGet = this.designsGet.bind(this);
+    this.designCreatePost = this.designCreatePost.bind(this);
+    this.designUpdatePatch = this.designUpdatePatch.bind(this);
+    this.designRemoveDelete = this.designRemoveDelete.bind(this);
+    this.writeFile = this.writeFile.bind(this);
+  }
+
   async designsGet(req, res) {
     try {
       const token = req.cookies.token;
@@ -49,37 +59,74 @@ class DesignController {
 
       const baseUrl = "http://localhost:3008/audio";
 
+      const designAlreadyExistOnKey = await prisma.design.findFirst({
+        where: {
+          key,
+          status: 1,
+          campaignId: parseInt(campaignId),
+        },
+      });
+
+      if (designAlreadyExistOnKey) {
+        response.error(
+          res,
+          "Design already exist for this key!",
+          designAlreadyExistOnKey
+        );
+      }
+
+      const campaign = await prisma.campaigns.findFirst({
+        where: {
+          id: parseInt(campaignId),
+        },
+      });
+
       if (loggedInUser) {
         let newDesign;
 
         if (messageText) {
           newDesign = await prisma.design.create({
             data: {
-              key: parseInt(key),
+              key,
               messageText,
               campaignId: parseInt(campaignId),
               addedBy: loggedInUser.id,
             },
           });
+
+          this.writeFile(key, "Text", messageText, campaign.campaignName);
         } else if (mobileNumber) {
           newDesign = await prisma.design.create({
             data: {
-              key: parseInt(key),
+              key,
               mobileNumber,
               campaignId: parseInt(campaignId),
               addedBy: loggedInUser.id,
             },
           });
+          this.writeFile(
+            key,
+            "Mobile Number",
+            mobileNumber,
+            campaign.campaignName
+          );
         } else if (req.file) {
           newDesign = await prisma.design.create({
             data: {
-              key: parseInt(key),
+              key,
               messageAudio: `${baseUrl}/${req.file.filename}`,
 
               campaignId: parseInt(campaignId),
               addedBy: loggedInUser.id,
             },
           });
+
+          this.writeFile(
+            key,
+            "Audio",
+            req.file.filename,
+            campaign.campaignName
+          );
         }
 
         response.success(res, "Design created successfully!", newDesign);
@@ -160,6 +207,37 @@ class DesignController {
     } catch (error) {
       console.log("error while removing design", error);
     }
+  }
+
+  writeFile(key, designType, designMessage, campaignName) {
+    const lines = [
+      "",
+      `exten => 1,1,noOp("Presses ${key}")`,
+      `${
+        designType === "Text"
+          ? `same => n,agi(googletts.agi,"${designMessage}",en)\nsame => n,Hangup()`
+          : designType === "Audio"
+          ? `same => n,Background(uploads/${designMessage})\nsame => n,Hangup()`
+          : designType === "Mobile Number"
+          ? 'same => n,agi(googletts.agi,"Please wait , while we are connecting your call to Agent",en)\n`same => n,Gosub(dial-gsm,s,1,(${designMessage}))`'
+          : ""
+      }`,
+    ];
+
+    lines.forEach((line) => {
+      fs.appendFileSync(
+        `conf/${campaignName.split(" ").join("_")}.conf`,
+        line + "\n",
+        "utf8",
+        (err) => {
+          if (err) {
+            console.error("Error creating or writing to file:", err);
+          } else {
+            console.log("File created and written successfully.");
+          }
+        }
+      );
+    });
   }
 }
 
