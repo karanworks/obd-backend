@@ -17,6 +17,7 @@ const roleRouter = require("./routes/roles");
 
 // parsing json
 app.use(express.json());
+app.use("/audio", express.static("uploads"));
 
 // cors connection
 app.use(

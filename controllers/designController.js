@@ -47,6 +47,8 @@ class DesignController {
 
       const loggedInUser = await getLoggedInUser(req, res);
 
+      const baseUrl = "http://localhost:3008/audio";
+
       if (loggedInUser) {
         let newDesign;
 
@@ -72,7 +74,8 @@ class DesignController {
           newDesign = await prisma.design.create({
             data: {
               key: parseInt(key),
-              messageAudio: req.file.filename,
+              messageAudio: `${baseUrl}/${req.file.filename}`,
+
               campaignId: parseInt(campaignId),
               addedBy: loggedInUser.id,
             },
@@ -88,25 +91,23 @@ class DesignController {
 
   async designUpdatePatch(req, res) {
     try {
-      const { key, messageText, mobileNumber } = req.body;
+      const { messageText, mobileNumber } = req.body;
 
       const { designId } = req.params;
 
-      // finding user from id
-      const designFound = await prisma.campaigns.findFirst({
+      const designFound = await prisma.design.findFirst({
         where: {
-          id: parseInt(campaignId),
+          id: parseInt(designId),
         },
       });
 
       if (designFound) {
         const updatedDesign = await prisma.design.update({
           where: {
-            id: parseInt(designId),
+            id: designFound.id,
           },
 
           data: {
-            key,
             messageText,
             mobileNumber,
           },
