@@ -120,8 +120,10 @@ model CampaignDataSetting{
    workOnThursday Boolean @default(true)
    workOnFriday Boolean @default(true)
    workOnSaturday Boolean @default(true)
+   date String
    timeStart String
    timeEnd String
+   status Int @default(1)
    createdAt DateTime @default(now())
    updatedAt DateTime @default(now())  
 

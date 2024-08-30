@@ -1,6 +1,6 @@
 const express = require("express");
 const RunRouter = express.Router({ mergeParams: true });
-const RunController = require("../controllers/RunController");
+const RunController = require("../controllers/runController");
 const multer = require("multer");
 
 const upload = multer();
