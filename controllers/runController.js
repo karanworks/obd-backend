@@ -28,16 +28,35 @@ class RunController {
               },
             });
 
-            const totalData = await prisma.campaignDialingData.count({
-              where: {
-                campaignDataSettingId: campaignDataSetting.id,
+            const campaignDialingData =
+              await prisma.campaignDialingData.findMany({
+                where: {
+                  campaignDataSettingId: campaignDataSetting.id,
+                },
+              });
+
+            // pending data count
+            const pendingData = await campaignDialingData.reduce(
+              async (prevPromise, data) => {
+                const prev = await prevPromise; // Wait for the previous promise to resolve
+                const status = await prisma.campaignDialingDataStatus.findFirst(
+                  {
+                    where: {
+                      campaignDialingDataId: data.id,
+                    },
+                  }
+                );
+
+                return prev + (status.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
               },
-            });
+              Promise.resolve(0)
+            );
 
             return {
               ...campaignDataSetting,
-              totalData,
+              totalData: campaignDialingData.length,
               campaignName: campaign.campaignName,
+              pendingData,
             };
           })
         );
@@ -166,17 +185,33 @@ class RunController {
           },
         });
 
-        const totalData = await prisma.campaignDataSetting.count({
+        const totalData = await prisma.campaignDialingData.count({
           where: {
             campaignId: parseInt(runFound.campaignId),
           },
         });
 
+        // pending data count
+        const pendingData = await campaignDialingData.reduce(
+          async (prevPromise, data) => {
+            const prev = await prevPromise; // Wait for the previous promise to resolve
+            const status = await prisma.campaignDialingDataStatus.findFirst({
+              where: {
+                campaignDialingDataId: data.id,
+              },
+            });
+
+            return prev + (status.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
+          },
+          Promise.resolve(0)
+        );
+
         response.success(res, "Run updated successfully!", {
           updatedRun: {
             ...updatedRun,
             campaignName: campaign.campaignName,
-            totalData: totalData.count,
+            totalData,
+            pendingData,
           },
         });
       } else {
@@ -211,9 +246,9 @@ class RunController {
           },
         });
 
-        const totalData = await prisma.campaignDataSetting.count({
+        const totalData = await prisma.campaignDialingData.count({
           where: {
-            campaignId: parseInt(currentStatus.campaignId),
+            campaignDataSettingId: parseInt(currentStatus.id),
           },
         });
 
@@ -234,7 +269,7 @@ class RunController {
           removedRun: {
             ...removedCampaignDataSetting,
             campaignName: campaign.campaignName,
-            totalData: totalData.count,
+            totalData: totalData,
           },
         });
       } else {

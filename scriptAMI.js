@@ -19,7 +19,7 @@ const ami = new AsteriskManager(5038, "localhost", "admin", "arhaan", true);
 
 // Function to make an outbound call
 function makeCall(destinationNumber, callerId) {
-  const context = "obd-setup"; // Context defined in extensions.conf
+  const context = "obd-setup"; // Context defined in extensions.conf // DIALPLAN NAME (conf file name that is nothing but campaign name with underscore)
   const extension = destinationNumber;
   const priority = 1;
 
