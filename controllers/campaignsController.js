@@ -53,10 +53,10 @@ class CampaignsController {
     try {
       const {
         campaignName,
-        channels,
         welcomeMessageText,
         invalidMessageText,
         timeOutMessageText,
+        gatewayId,
       } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
@@ -84,7 +84,6 @@ class CampaignsController {
         const newCampaign = await prisma.campaigns.create({
           data: {
             campaignName,
-            channels: parseInt(channels),
             welcomeMessageText,
             welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
               ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
@@ -98,6 +97,7 @@ class CampaignsController {
               ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
               : null,
             status: 1,
+            gatewayId: gatewayId,
             addedBy: loggedInUser.id,
           },
         });
@@ -221,7 +221,7 @@ class CampaignsController {
       console.log("error while removing campaign", error);
     }
   }
-
+  7;
   writeFile(newCampaign) {
     const dirPath = path.join(__dirname, "..", "asterisk/dialplan");
 

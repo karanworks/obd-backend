@@ -2,8 +2,18 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
+const fs = require("fs");
+const path = require("path");
 
 class GatewayController {
+  constructor() {
+    this.gatewayGet = this.gatewayGet.bind(this);
+    this.gatewayCreatePost = this.gatewayCreatePost.bind(this);
+    this.gatewayUpdatePatch = this.gatewayUpdatePatch.bind(this);
+    this.gatewayRemoveDelete = this.gatewayRemoveDelete.bind(this);
+    this.writeFile = this.writeFile.bind(this);
+  }
+
   async gatewayGet(req, res) {
     try {
       const token = req.cookies.token;
@@ -17,26 +27,11 @@ class GatewayController {
 
         const gateways = await prisma.gateway.findMany({});
 
-        const gatewaysWithCampaign = await Promise.all(
-          gateways?.map(async (gateway) => {
-            const campaign = await prisma.campaigns.findFirst({
-              where: {
-                id: gateway.campaignid,
-              },
-            });
-
-            return {
-              ...gateway,
-              campaignName: campaign.campaignName,
-            };
-          })
-        );
-
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Designs fetched!", {
           ...adminDataWithoutPassword,
-          gateways: gatewaysWithCampaign,
+          gateways,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
@@ -51,30 +46,23 @@ class GatewayController {
 
   async gatewayCreatePost(req, res) {
     try {
-      const { gatewayIpAddress, channels, userId, password, campaignId } =
-        req.body;
+      const { gatewayIpAddress, channels, userId, password } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {
-        const campaign = await prisma.campaigns.findFirst({
-          where: { id: parseInt(campaignId) },
-        });
-
         const gateway = await prisma.gateway.create({
           data: {
             gatewayIpAddress,
             channels: parseInt(channels),
             userId,
             password,
-            campaignId: parseInt(campaignId),
           },
         });
 
-        response.success(res, "Gateway Created Successfully", {
-          ...gateway,
-          campaignName: campaign.campaignName,
-        });
+        this.writeFile(gateway);
+
+        response.success(res, "Gateway Created Successfully", gateway);
       } else {
         response.error(res, "User not logged in");
       }
@@ -85,62 +73,31 @@ class GatewayController {
 
   async gatewayUpdatePatch(req, res) {
     try {
-      const { date, startTime, endTime } = req.body;
+      const { gatewayIpAddress, channels, userId, password } = req.body;
 
-      const { runId } = req.params;
+      const { gatewayId } = req.params;
 
-      const runFound = await prisma.campaignDataSetting.findFirst({
+      const gatewayFound = await prisma.gateway.findFirst({
         where: {
-          id: parseInt(runId),
+          id: parseInt(gatewayId),
         },
       });
 
-      const campaign = await prisma.campaigns.findFirst({
-        where: {
-          id: parseInt(runFound.campaignId),
-        },
-      });
-
-      if (runFound) {
-        const updatedRun = await prisma.campaignDataSetting.update({
+      if (gatewayFound) {
+        const updatedGateway = await prisma.gateway.update({
           where: {
-            id: runFound.id,
+            id: gatewayFound.id,
           },
           data: {
-            date,
-            timeStart: startTime,
-            timeEnd: endTime,
+            gatewayIpAddress,
+            channels: parseInt(channels),
+            userId,
+            password,
           },
         });
 
-        const totalData = await prisma.campaignDialingData.count({
-          where: {
-            campaignId: parseInt(runFound.campaignId),
-          },
-        });
-
-        // pending data count
-        const pendingData = await campaignDialingData.reduce(
-          async (prevPromise, data) => {
-            const prev = await prevPromise; // Wait for the previous promise to resolve
-            const status = await prisma.campaignDialingDataStatus.findFirst({
-              where: {
-                campaignDialingDataId: data.id,
-              },
-            });
-
-            return prev + (status.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
-          },
-          Promise.resolve(0)
-        );
-
-        response.success(res, "Run updated successfully!", {
-          updatedRun: {
-            ...updatedRun,
-            campaignName: campaign.campaignName,
-            totalData,
-            pendingData,
-          },
+        response.success(res, "Gateway updated successfully!", {
+          updatedGateway,
         });
       } else {
         response.error(res, "Run not found!");
@@ -208,6 +165,44 @@ class GatewayController {
     } catch (error) {
       console.log("error while removing gateway", error);
     }
+  }
+
+  writeFile(gateway) {
+    const dirPath = path.join(__dirname, "..", "asterisk/pjsip");
+
+    const fileName = gateway.userId + ".conf";
+
+    const filePath = path.join(dirPath, fileName);
+
+    const lines = [
+      `[${gateway.userId}]`,
+      "type=endpoint",
+      "context=default",
+      "disallow=all",
+      "allow=ulaw,alaw",
+      `auth=${gateway.userId}-auth`,
+      `aors=${gateway.userId}-aors`,
+      "",
+      `[${gateway.userId + "-auth"}]`,
+      "type=auth",
+      "auth-type=userpass",
+      `password=${gateway.password}`,
+      `username=${gateway.userId}`,
+      "",
+      `[${gateway.userId + "-aors"}]`,
+      "type=aor",
+      "max-contacts=1",
+    ];
+
+    lines.forEach((line, index) => {
+      fs.appendFileSync(filePath, line + "\n", "utf8", (err) => {
+        if (err) {
+          console.error("Error creating or writing to file:", err);
+        } else {
+          console.log("File created and written successfully.");
+        }
+      });
+    });
   }
 }
 

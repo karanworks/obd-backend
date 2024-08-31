@@ -83,13 +83,13 @@ model RoleAssign{
 model Campaigns {
   id Int @id @default(autoincrement())
   campaignName String
-  channels Int
   welcomeMessageText String?
   welcomeMessageAudio String?
   invalidMessageText String?
   invalidMessageAudio String?
   timeOutMessageText String?
   timeOutMessageAudio String?
+  gatewayId String
   confFileName String? // LOCATION
   dialplanName String? // NAME ONLY
   status Int @default(1)
@@ -146,39 +146,36 @@ model CampaignDialingDataStatus{
   updatedAt DateTime @default(now())  
 }
 
-model CallResponseCDR{
-  id Int @id @default(autoincrement())
-  cddId Int
-  phoneNumber String
-  eventName String
-  privilege String
-  channelId String
-  channelState String
-  channelStateDesc String
-  calleridnum String
-  calleridname String
-  connectedlinenum String
-  connectedlinename String
-  language String
-  accountcode String
-  context String
-  exten String
-  priority String
-  uniqueid String
-  linkedid String
-  cause String
-  causeTxt String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())  
-}
 
+model CallResponseCDR{
+ id Int @id @default(autoincrement())
+ eventName String
+ privilege String
+ channelId String
+ channelState String
+ channelStateDesc String
+ calleridnum String
+ calleridname String
+ connectedlinenum String
+ connectedlinename String
+ language String
+ accountcode String
+ context String
+ exten String
+ priority String
+ uniqueid String @unique
+ linkedid String
+ cause String
+ causeTxt String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @default(now())  
+}
 model Gateway{
   id Int @id @default(autoincrement())
   gatewayIpAddress String
   channels Int
   userId String
   password String
-  campaignId Int
   status Int @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
