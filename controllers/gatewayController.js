@@ -50,6 +50,16 @@ class GatewayController {
 
       const loggedInUser = await getLoggedInUser(req, res);
 
+      const gatewayAlreadyExist = await prisma.gateway.findFirst({
+        where: {
+          userId,
+        },
+      });
+
+      if (gatewayAlreadyExist) {
+        response.error(res, "Gateway Already Exist");
+      }
+
       if (loggedInUser) {
         const gateway = await prisma.gateway.create({
           data: {
