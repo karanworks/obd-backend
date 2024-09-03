@@ -12,6 +12,7 @@ const campaignsRouter = require("./routes/campaigns");
 const designRouter = require("./routes/design");
 const runRouter = require("./routes/run");
 const gatewayRouter = require("./routes/gateway");
+const TestIVRRouter = require("./routes/testIvr");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -55,6 +56,7 @@ app.use("/", campaignsRouter);
 app.use("/", designRouter);
 app.use("/", runRouter);
 app.use("/", gatewayRouter);
+app.use("/", TestIVRRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

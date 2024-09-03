@@ -4,17 +4,17 @@ const mysql = require("mysql");
 const AsteriskManager = require("asterisk-manager");
 
 // MySQL connection setup
-const db = mysql.createConnection({
-  host: "192.168.1.200",
-  user: "root",
-  password: "King42kash@13",
-  database: "asterisk",
-});
+// const db = mysql.createConnection({
+//   host: "192.168.1.200",
+//   user: "root",
+//   password: "King42kash@13",
+//   database: "asterisk",
+// });
 
-db.connect((err) => {
-  if (err) throw err;
-  console.log("Connected to MySQL");
-});
+// db.connect((err) => {
+//   if (err) throw err;
+//   console.log("Connected to MySQL");
+// });
 
 const activeCalls = [];
 
@@ -54,7 +54,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
       function (err, response) {
         if (err) {
           console.error("Error making call:", err);
-          reject(err); // Properly handle the error by rejecting the promise
+          // reject(err); // Properly handle the error by rejecting the promise
         } else {
           console.log("Call initiated:", response);
         }
@@ -130,155 +130,157 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
   });
 }
 
-async function testFunction() {
-  try {
-    // Step 1: Get the list of Campaign IDs that are active and have timeStart and timeEnd conditions
-    const activeCampaignIds = await prisma.campaignDataSetting
-      .findMany({
-        where: {
-          campaignId: {
-            in: (
-              await prisma.campaigns.findMany({
-                where: {
-                  status: 1,
-                },
-                select: {
-                  id: true,
-                },
-              })
-            ).map((campaign) => campaign.id), // Flattening the array to pass only campaign IDs
-          },
-          timeStart: {
-            lte: "13:00",
-          },
-          timeEnd: {
-            gte: "20:00",
-          },
-          workDays: {
-            contains: "6",
-          },
-        },
-        select: {
-          campaignId: true,
-        },
-      })
-      .then((results) => results.map((item) => item.campaignId)); // Flattening the array to pass only campaign IDs
-    if (activeCampaignIds.length === 0) {
-      return;
-    } else {
-      // Step 2: Get callerIdNums that should be excluded
-      const excludedCallerIds = await prisma.callResponseCDR
-        .findMany({
-          where: {
-            calleridnum: {
-              in: (
-                await prisma.campaignDialingData.findMany({
-                  where: {
-                    campaignId: {
-                      in: activeCampaignIds,
-                    },
-                  },
-                  select: {
-                    id: true,
-                  },
-                })
-              ).map((campaignDialingData) => String(campaignDialingData.id)), // Flattening the array to pass only IDs
-            },
-          },
-          select: {
-            calleridnum: true,
-          },
-        })
-        .then((results) => results.map((item) => parseInt(item.calleridnum))); // Flattening the array to pass only calleridnums
+// async function testFunction() {
+//   try {
+//     // Step 1: Get the list of Campaign IDs that are active and have timeStart and timeEnd conditions
+//     const activeCampaignIds = await prisma.campaignDataSetting
+//       .findMany({
+//         where: {
+//           campaignId: {
+//             in: (
+//               await prisma.campaigns.findMany({
+//                 where: {
+//                   status: 1,
+//                 },
+//                 select: {
+//                   id: true,
+//                 },
+//               })
+//             ).map((campaign) => campaign.id), // Flattening the array to pass only campaign IDs
+//           },
+//           timeStart: {
+//             lte: "13:00",
+//           },
+//           timeEnd: {
+//             gte: "20:00",
+//           },
+//           workDays: {
+//             contains: "6",
+//           },
+//         },
+//         select: {
+//           campaignId: true,
+//         },
+//       })
+//       .then((results) => results.map((item) => item.campaignId)); // Flattening the array to pass only campaign IDs
+//     if (activeCampaignIds.length === 0) {
+//       return;
+//     } else {
+//       // Step 2: Get callerIdNums that should be excluded
+//       const excludedCallerIds = await prisma.callResponseCDR
+//         .findMany({
+//           where: {
+//             calleridnum: {
+//               in: (
+//                 await prisma.campaignDialingData.findMany({
+//                   where: {
+//                     campaignId: {
+//                       in: activeCampaignIds,
+//                     },
+//                   },
+//                   select: {
+//                     id: true,
+//                   },
+//                 })
+//               ).map((campaignDialingData) => String(campaignDialingData.id)), // Flattening the array to pass only IDs
+//             },
+//           },
+//           select: {
+//             calleridnum: true,
+//           },
+//         })
+//         .then((results) => results.map((item) => parseInt(item.calleridnum))); // Flattening the array to pass only calleridnums
 
-      // Step 3: Query the final data
-      const data = await prisma.campaignDialingData.findMany({
-        where: {
-          id: {
-            notIn: excludedCallerIds,
-          },
-        },
-      });
+//       // Step 3: Query the final data
+//       const data = await prisma.campaignDialingData.findMany({
+//         where: {
+//           id: {
+//             notIn: excludedCallerIds,
+//           },
+//         },
+//       });
 
-      if (data.length > 0) {
-        console.log("MOBILE NUMBERS TO CALL ->", data.length);
-      }
+//       if (data.length > 0) {
+//         console.log("MOBILE NUMBERS TO CALL ->", data.length);
+//       }
 
-      const campainDetails = await prisma.campaigns.findMany({
-        where: {
-          id: {
-            in: activeCampaignIds,
-          },
-        },
-        select: {
-          id: true,
-          dialplanName: true,
-          gatewayId: true,
-        },
-      });
+//       const campainDetails = await prisma.campaigns.findMany({
+//         where: {
+//           id: {
+//             in: activeCampaignIds,
+//           },
+//         },
+//         select: {
+//           id: true,
+//           dialplanName: true,
+//           gatewayId: true,
+//         },
+//       });
 
-      const gatewayIds = campainDetails.map((campaign) =>
-        parseInt(campaign.gatewayId)
-      );
+//       const gatewayIds = campainDetails.map((campaign) =>
+//         parseInt(campaign.gatewayId)
+//       );
 
-      const gatewayDetails = await prisma.gateway.findMany({
-        where: {
-          id: {
-            in: gatewayIds,
-          },
-        },
-        select: {
-          id: true,
-          userId: true,
-        },
-      });
+//       const gatewayDetails = await prisma.gateway.findMany({
+//         where: {
+//           id: {
+//             in: gatewayIds,
+//           },
+//         },
+//         select: {
+//           id: true,
+//           userId: true,
+//         },
+//       });
 
-      // Assuming `data` is the array of campaign dialing data you fetched earlier
-      const result = data.map((item) => {
-        const campaignDetail = campainDetails.find(
-          (detail) => detail.id === item.campaignId
-        );
-        const gatewayDetail = gatewayDetails.find(
-          (gateway) => gateway.id === parseInt(campaignDetail?.gatewayId)
-        );
+//       // Assuming `data` is the array of campaign dialing data you fetched earlier
+//       const result = data.map((item) => {
+//         const campaignDetail = campainDetails.find(
+//           (detail) => detail.id === item.campaignId
+//         );
+//         const gatewayDetail = gatewayDetails.find(
+//           (gateway) => gateway.id === parseInt(campaignDetail?.gatewayId)
+//         );
 
-        return {
-          id: item.id,
-          phoneNumber: item.phoneNumber,
-          dialplanName: campaignDetail?.dialplanName,
-          GatewayID: gatewayDetail.userId,
-        };
-      });
+//         return {
+//           id: item.id,
+//           phoneNumber: item.phoneNumber,
+//           dialplanName: campaignDetail?.dialplanName,
+//           GatewayID: gatewayDetail.userId,
+//         };
+//       });
 
-      // Function to process a batch of calls
-      async function processCalls(batch) {
-        const callPromises = batch.map((numberToCall) => {
-          if (numberToCall?.phoneNumber) {
-            return makeCall(
-              numberToCall.phoneNumber,
-              `${numberToCall.phoneNumber}<${numberToCall?.id}>`,
-              numberToCall.dialplanName,
-              numberToCall.id
-            );
-          }
-        });
+//       // Function to process a batch of calls
+//       async function processCalls(batch) {
+//         const callPromises = batch.map((numberToCall) => {
+//           if (numberToCall?.phoneNumber) {
+//             return makeCall(
+//               numberToCall.phoneNumber,
+//               `${numberToCall.phoneNumber}<${numberToCall?.id}>`,
+//               numberToCall.dialplanName,
+//               numberToCall.id
+//             );
+//           }
+//         });
 
-        await Promise.allSettled(callPromises); // Use Promise.allSettled to ensure all promises are handled
-      }
+//         await Promise.allSettled(callPromises); // Use Promise.allSettled to ensure all promises are handled
+//       }
 
-      // Process calls in batches of 2
-      while (result.length > 0) {
-        const batch = result.splice(0, 2); // Get the next batch of 2 calls
-        await processCalls(batch);
-      }
-    }
-  } catch (err) {
-    console.error("Error in testFunction:", err);
-  } finally {
-    prisma.$disconnect();
-  }
-}
+//       // Process calls in batches of 2
+//       while (result.length > 0) {
+//         const batch = result.splice(0, 2); // Get the next batch of 2 calls
+//         await processCalls(batch);
+//       }
+//     }
+//   } catch (err) {
+//     console.error("Error in testFunction:", err);
+//   } finally {
+//     prisma.$disconnect();
+//   }
+// }
 
-testFunction().catch((err) => {
-  console.error("Unhandled error in testFunction:", err);
-});
+// testFunction().catch((err) => {
+//   console.error("Unhandled error in testFunction:", err);
+// });
+
+module.exports = { makeCall };
