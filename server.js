@@ -13,6 +13,7 @@ const designRouter = require("./routes/design");
 const runRouter = require("./routes/run");
 const gatewayRouter = require("./routes/gateway");
 const TestIVRRouter = require("./routes/testIvr");
+const ReportRouter = require("./routes/report");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -30,6 +31,10 @@ app.use(
     credentials: true,
   })
 );
+
+app.get("/", (req, res) => {
+  res.send("Hi Buddy, I am working!");
+});
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3009");
