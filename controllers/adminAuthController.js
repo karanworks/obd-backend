@@ -140,7 +140,7 @@ class AdminAuthController {
         res.cookie("token", loginToken, {
           expires: expirationDate,
           httpOnly: true,
-          secure: true,
+          sameSite: "None",
         });
 
         response.success(res, "User logged in!", {

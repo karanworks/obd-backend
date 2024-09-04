@@ -4,32 +4,24 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const fs = require("fs");
 const path = require("path");
-const { makeCall } = require("../testFile");
 
-class TestIVRController {
-  async testIvr(req, res) {
+class ReportController {
+  async getReports(req, res) {
     try {
       const token = req.cookies.token;
 
-      const { phoneNumber } = req.body;
-
-      const { campaignId } = req.params;
-
-      const campaign = await prisma.campaigns.findFirst({
-        where: { id: parseInt(campaignId) },
+      const loggedInUser = await prisma.user.findFirst({
+        where: {
+          token: parseInt(token),
+        },
       });
 
-      if (token) {
-        const loggedInUser = await prisma.user.findFirst({
-          where: {
-            token: parseInt(token),
-          },
-        });
+      if (loggedInUser) {
+        const data = await prisma.callResponseCDR.findMany({});
 
-        // MAKE CALL (CALL MILEGI KAISE IS SERVER PAR ASTERISK THODI CHAL RHA HAI)
-        makeCall(phoneNumber, `${phoneNumber}<test>`, campaign.dialplanName);
+        console.log("REPORT API CALLED ->", data);
 
-        response.success(res, "Tested IVR successfully!");
+        response.success(res, "Report fetched!");
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
         res
@@ -37,9 +29,9 @@ class TestIVRController {
           .json({ message: "user not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while testing ivr", error);
+      console.log("error while fetchin report", error);
     }
   }
 }
 
-module.exports = new TestIVRController();
+module.exports = new ReportController();

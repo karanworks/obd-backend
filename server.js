@@ -26,18 +26,16 @@ app.use("/audio", express.static("asterisk/audio"));
 // cors connection
 app.use(
   cors({
+    //  origin: "http://192.168.1.5:3009",
     origin: "http://localhost:3009",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-app.get("/", (req, res) => {
-  res.send("Hi Buddy, I am working!");
-});
-
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3009");
+  //  res.setHeader("Access-Control-Allow-Origin", "http://192.168.1.5:3009");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, PUT, POST, PATCH, DELETE"
@@ -52,6 +50,10 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
+app.get("/", (req, res) => {
+  res.send("Hi Buddy, I am working!");
+});
+
 app.use("/", homeRouter);
 app.use("/", adminAuthRouter);
 app.use("/", adminUsersRouter);
@@ -62,6 +64,7 @@ app.use("/", designRouter);
 app.use("/", runRouter);
 app.use("/", gatewayRouter);
 app.use("/", TestIVRRouter);
+app.use("/", ReportRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
