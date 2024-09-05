@@ -4,7 +4,7 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const fs = require("fs");
 const path = require("path");
-const { makeCall } = require("../testFile");
+const { makeCall } = require("../utils/makeCall");
 
 class TestIVRController {
   async testIvr(req, res) {
@@ -26,7 +26,6 @@ class TestIVRController {
           },
         });
 
-        // MAKE CALL (CALL MILEGI KAISE IS SERVER PAR ASTERISK THODI CHAL RHA HAI)
         makeCall(phoneNumber, `${phoneNumber}<test>`, campaign.dialplanName);
 
         response.success(res, "Tested IVR successfully!");

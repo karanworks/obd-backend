@@ -10,6 +10,8 @@ class ReportController {
     try {
       const token = req.cookies.token;
 
+      const { campaignId } = req.body;
+
       const loggedInUser = await prisma.user.findFirst({
         where: {
           token: parseInt(token),
@@ -17,11 +19,38 @@ class ReportController {
       });
 
       if (loggedInUser) {
-        const data = await prisma.callResponseCDR.findMany({});
+        const campaign = await prisma.campaigns.findFirst({
+          where: {
+            id: parseInt(campaignId),
+          },
+        });
+        const reports = await prisma.$queryRawUnsafe(`
+          SELECT 
+            \`connectedlinename\` As phoneNumber,
+            (SELECT \`campaignName\` FROM \`Campaigns\` WHERE \`id\` = CampaignDialingData.campaignId) AS CampaignName,
+            \`channelStateDesc\`,
+            ('0') as StartTime,
+            ('0') as EndTime,
+            \`calldate\`,
+            TIME_FORMAT(SEC_TO_TIME(\`duration\`), '%H:%i:%s') AS duration,
+            TIME_FORMAT(SEC_TO_TIME(\`billsec\`), '%H:%i:%s') AS billsec,
+            \`causeTxt\`,
+            \`exten\`
+          FROM 
+            \`CallResponseCDR\` 
+          LEFT JOIN 
+            (SELECT \`calldate\`, \`duration\`, \`billsec\`, \`uniqueid\` FROM \`Cdr\` WHERE 1) as rowCdr 
+            ON rowCdr.\`uniqueid\` = CallResponseCDR.uniqueid 
+          INNER JOIN 
+            \`CampaignDialingData\` 
+            ON CampaignDialingData.id = \`connectedlinenum\` 
+          WHERE 
+            \`connectedlinenum\` IN (SELECT \`id\` FROM \`CampaignDialingData\` WHERE \`campaignId\` = ${campaign.id})
+          ORDER BY 
+            \`CallResponseCDR\`.\`exten\` ASC;
+        `);
 
-        console.log("REPORT API CALLED ->", data);
-
-        response.success(res, "Report fetched!");
+        response.success(res, "Report fetched!", { reports });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
         res

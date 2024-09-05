@@ -161,6 +161,8 @@ model CallResponseCDR{
  linkedid String
  cause String
  causeTxt String?
+ startTime DateTime @default(now())
+ endTime DateTime @default(now())
  createdAt DateTime @default(now())
  updatedAt DateTime @default(now())  
 }
@@ -173,4 +175,26 @@ model Gateway{
   status Int @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
+}
+
+model Cdr{
+  calldate DateTime
+  clid String
+  src String
+  dst String
+  dcontext String
+  channel String
+  dstchannel String
+  lastapp String
+  lastdata String
+  duration Int
+  billsec Int
+  disposition String
+  amaflags Int
+  accountcode String
+  uniqueid String @unique
+  userfield String @db.VarChar(255)
+  peeraccount String
+  linkedid String
+  sequence Int
 }
