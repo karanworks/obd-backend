@@ -3,30 +3,15 @@ const prisma = new PrismaClient();
 const mysql = require("mysql");
 const AsteriskManager = require("asterisk-manager");
 
-function createRandomVariableName(baseName) {
-  const randomNum = Math.floor(Math.random() * 1000); // Generates a random number between 0 and 999
-  return `${baseName}${randomNum}`;
-}
-
 function makeCall(destinationNumber, callerId, dialplan, cddId) {
   return new Promise((resolve, reject) => {
-    const randomVariableName = createRandomVariableName("ami");
-
-    const dynamicVariables = {};
-
-    dynamicVariables[randomVariableName] = new AsteriskManager(
-      5038,
-      "localhost",
-      "admin",
-      "arhaan",
-      true
-    );
+    const ami = new AsteriskManager(5038, "localhost", "admin", "arhaan", true);
 
     const context = dialplan; // Context defined in extensions.conf // DIALPLAN NAME (conf file name that is nothing but campaign name with underscore)
     const extension = destinationNumber;
     const priority = 1;
 
-    dynamicVariables[randomVariableName].action(
+    ami.action(
       {
         Action: "Originate",
         Channel: `PJSIP/${extension}@gt206`, // Adjust for your trunk/channel
@@ -39,7 +24,8 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
       function (err, response) {
         if (err) {
           console.error("Error making call:", err);
-          // reject(err); // Properly handle the error by rejecting the promise
+          ami.disconnect();
+          reject(err); // Properly handle the error by rejecting the promise
         } else {
           console.log("Call initiated:", response);
         }
@@ -50,7 +36,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
     let endTime;
 
     // AMI EVENT
-    dynamicVariables[randomVariableName].on("managerevent", (event) => {
+    ami.on("managerevent", (event) => {
       if (event.event === "Newchannel") {
         // Handle new call event
 
@@ -102,17 +88,20 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
               console.log("UNIQUE ERROR ->", err);
             })
             .finally(() => {
+              ami.disconnect();
               resolve(); // Resolve the promise when the operation is complete
             });
         } else {
           resolve(); // Resolve if the condition does not match
+          ami.disconnect();
         }
       }
     });
 
     // Handle errors
-    dynamicVariables[randomVariableName].on("error", (err) => {
+    ami.on("error", (err) => {
       console.error("AMI Error:", err);
+      ami.disconnect();
       reject(err); // Properly handle errors by rejecting the promise
     });
   });
@@ -188,7 +177,7 @@ async function testFunction() {
         },
       });
 
-      if (data.length > 0) {
+      if (data.length < 0) {
         console.log("MOBILE NUMBERS TO CALL ->", data.length);
         return;
       }
@@ -252,8 +241,10 @@ async function testFunction() {
           }
         });
 
-        await Promise.all(callPromises); // Use Promise.allSettled to ensure all promises are handled
+        await Promise.allSettled(callPromises); // Use Promise.allSettled to ensure all promises are handled
       }
+
+      console.log("CALL PROMISES ->", callPromises);
 
       // Process calls in batches of 2
       while (result.length > 0) {

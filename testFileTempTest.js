@@ -9,6 +9,8 @@ function createRandomVariableName(baseName) {
 }
 
 function makeCall(destinationNumber, callerId, dialplan, cddId) {
+  console.log("makeCall Log ->", destinationNumber);
+
   return new Promise((resolve, reject) => {
     const randomVariableName = createRandomVariableName("ami");
 
@@ -39,7 +41,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
       function (err, response) {
         if (err) {
           console.error("Error making call:", err);
-          // reject(err); // Properly handle the error by rejecting the promise
+          resolve(); // Properly handle the error by rejecting the promise
         } else {
           console.log("Call initiated:", response);
         }
@@ -60,6 +62,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
 
       if (event.event === "CDR") {
         console.log("event CDR");
+        resolve();
       }
 
       if (event.event === "Hangup") {
@@ -68,8 +71,6 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
         endTime = new Date();
 
         if (parseInt(event.connectedlinenum) === cddId) {
-          console.log("YES CONDITION BEING EXECUTED");
-
           prisma.callResponseCDR
             .create({
               data: {
@@ -96,14 +97,13 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
               },
             })
             .then((res) => {
-              console.log("CDR CREATED!", event);
+              // console.log("CDR CREATED!", event);
             })
             .catch((err) => {
               console.log("UNIQUE ERROR ->", err);
-            })
-            .finally(() => {
-              resolve(); // Resolve the promise when the operation is complete
             });
+
+          resolve();
         } else {
           resolve(); // Resolve if the condition does not match
         }
@@ -118,9 +118,62 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
   });
 }
 
-async function testFunction() {
+async function processCalls() {
+  while (true) {
+    try {
+      const numbersToCall = await getNumbersToCall(2); // Fetch numbers to call
+
+      console.log("processCalls, numbersToCall Log ->", numbersToCall);
+
+      if (!numbersToCall || numbersToCall.length === 0) {
+        console.log("No more numbers to call. Process complete.");
+        break; // Exit the loop when no more numbers are returned
+      }
+
+      if (numbersToCall?.length > 0) {
+        // Process all calls in parallel
+        const callPromises = numbersToCall.map((numberData) => {
+          return makeCall(
+            numberData.phoneNumber,
+            `${numberData.phoneNumber}<${numberData?.id}>`,
+            numberData.dialplanName,
+            numberData.id
+          );
+        });
+
+        await Promise.allSettled(callPromises); // Wait for all calls to settle
+        console.log("Batch of calls completed.");
+      }
+    } catch (err) {
+      console.error("Error in processCalls:", err);
+      break; // Optionally break the loop if an error occurs
+    }
+  }
+}
+
+processCalls() // Pass channelNo to process calls simultaneously
+  .catch((err) => {
+    console.error("Unhandled error in processCalls:", err);
+  });
+
+function getCurrentTime() {
+  const date = new Date();
+  const options = {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
+    hour12: false,
+  };
+  const time = date.toLocaleTimeString("en-GB", options);
+  const day = date.getDay().toString();
+
+  return [time, day];
+}
+
+async function getNumbersToCall(channelNo) {
   try {
-    // Step 1: Get the list of Campaign IDs that are active and have timeStart and timeEnd conditions
+    const [time, day] = getCurrentTime();
+
     const activeCampaignIds = await prisma.campaignDataSetting
       .findMany({
         where: {
@@ -137,20 +190,21 @@ async function testFunction() {
             ).map((campaign) => campaign.id), // Flattening the array to pass only campaign IDs
           },
           timeStart: {
-            lte: "13:00",
+            lte: time,
           },
           timeEnd: {
-            gte: "20:00",
+            gte: time,
           },
           workDays: {
-            contains: "6",
+            contains: day,
           },
         },
         select: {
           campaignId: true,
         },
       })
-      .then((results) => results.map((item) => item.campaignId)); // Flattening the array to pass only campaign IDs
+      .then((results) => results.map((item) => item.campaignId));
+
     if (activeCampaignIds.length === 0) {
       return;
     } else {
@@ -177,7 +231,7 @@ async function testFunction() {
             calleridnum: true,
           },
         })
-        .then((results) => results.map((item) => parseInt(item.calleridnum))); // Flattening the array to pass only calleridnums
+        .then((results) => results.map((item) => parseInt(item.calleridnum)));
 
       // Step 3: Query the final data
       const data = await prisma.campaignDialingData.findMany({
@@ -186,14 +240,17 @@ async function testFunction() {
             notIn: excludedCallerIds,
           },
         },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: channelNo, // CHANNEL NO NEEDS TO BE MODIFIED HERE
       });
 
-      if (data.length > 0) {
-        console.log("MOBILE NUMBERS TO CALL ->", data.length);
+      if (data.length === 0) {
         return;
       }
 
-      const campainDetails = await prisma.campaigns.findMany({
+      const campaignDetails = await prisma.campaigns.findMany({
         where: {
           id: {
             in: activeCampaignIds,
@@ -206,7 +263,7 @@ async function testFunction() {
         },
       });
 
-      const gatewayIds = campainDetails.map((campaign) =>
+      const gatewayIds = campaignDetails.map((campaign) =>
         parseInt(campaign.gatewayId)
       );
 
@@ -222,9 +279,8 @@ async function testFunction() {
         },
       });
 
-      // Assuming `data` is the array of campaign dialing data you fetched earlier
       const result = data.map((item) => {
-        const campaignDetail = campainDetails.find(
+        const campaignDetail = campaignDetails.find(
           (detail) => detail.id === item.campaignId
         );
         const gatewayDetail = gatewayDetails.find(
@@ -239,35 +295,11 @@ async function testFunction() {
         };
       });
 
-      // Function to process a batch of calls
-      async function processCalls(batch) {
-        const callPromises = batch.map((numberToCall) => {
-          if (numberToCall?.phoneNumber) {
-            return makeCall(
-              numberToCall.phoneNumber,
-              `${numberToCall.phoneNumber}<${numberToCall?.id}>`,
-              numberToCall.dialplanName,
-              numberToCall.id
-            );
-          }
-        });
+      console.log("getNumbersToCall Log new numbers->", result);
 
-        await Promise.all(callPromises); // Use Promise.allSettled to ensure all promises are handled
-      }
-
-      // Process calls in batches of 2
-      while (result.length > 0) {
-        const batch = result.splice(0, 2); // Get the next batch of 2 calls
-        await processCalls(batch);
-      }
+      return result;
     }
   } catch (err) {
-    console.error("Error in testFunction:", err);
-  } finally {
-    prisma.$disconnect();
+    console.error("Error in getNumbersToCall:", err);
   }
 }
-
-testFunction().catch((err) => {
-  console.error("Unhandled error in testFunction:", err);
-});
