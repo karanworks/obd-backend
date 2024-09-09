@@ -80,7 +80,7 @@ class RunController {
 
   async runCreatePost(req, res) {
     try {
-      const { campaignId, date, startTime, endTime } = req.body;
+      const { campaignId, date, startTime, endTime, workDays } = req.body;
 
       const { buffer } = req.file;
 
@@ -104,6 +104,7 @@ class RunController {
               date,
               timeStart: startTime,
               timeEnd: endTime,
+              workDays,
             },
           });
 
@@ -157,7 +158,7 @@ class RunController {
 
   async runUpdatePatch(req, res) {
     try {
-      const { date, startTime, endTime } = req.body;
+      const { startTime, endTime, workDays } = req.body;
 
       const { runId } = req.params;
 
@@ -179,9 +180,9 @@ class RunController {
             id: runFound.id,
           },
           data: {
-            date,
             timeStart: startTime,
             timeEnd: endTime,
+            workDays,
           },
         });
 
@@ -192,26 +193,26 @@ class RunController {
         });
 
         // pending data count
-        const pendingData = await campaignDialingData.reduce(
-          async (prevPromise, data) => {
-            const prev = await prevPromise; // Wait for the previous promise to resolve
-            const status = await prisma.campaignDialingDataStatus.findFirst({
-              where: {
-                campaignDialingDataId: data.id,
-              },
-            });
+        // const pendingData = await campaignDialingData.reduce(
+        //   async (prevPromise, data) => {
+        //     const prev = await prevPromise; // Wait for the previous promise to resolve
+        //     const status = await prisma.campaignDialingDataStatus.findFirst({
+        //       where: {
+        //         campaignDialingDataId: data.id,
+        //       },
+        //     });
 
-            return prev + (status.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
-          },
-          Promise.resolve(0)
-        );
+        //     return prev + (status.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
+        //   },
+        //   Promise.resolve(0)
+        // );
 
         response.success(res, "Run updated successfully!", {
           updatedRun: {
             ...updatedRun,
             campaignName: campaign.campaignName,
             totalData,
-            pendingData,
+            pendingData: 0,
           },
         });
       } else {

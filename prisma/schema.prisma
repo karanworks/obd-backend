@@ -114,8 +114,7 @@ model Design {
 model CampaignDataSetting{
    id Int @id @default(autoincrement())
    campaignId Int
-   workDays String?
-   date String
+   workDays String
    timeStart String
    timeEnd String
    status Int @default(1)
@@ -176,6 +175,7 @@ model Gateway{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
+
 
 model Cdr{
   calldate DateTime
