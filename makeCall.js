@@ -54,21 +54,28 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
         // Handle new call event
 
         startTime = new Date();
-        console.log("New call:", event);
-      }
+        console.log("----------------NEW CALL MADE----------------");
 
-      if (event.event === "CDR") {
-        console.log("event CDR");
+        // console.log("New call:", event);
       }
 
       if (event.event === "Hangup") {
+        console.log("HOLD UP EVENT ->", event);
+
+        // console.log(
+        //   "----------------EVENT CDR AFTER HANGUP ----------------->",
+        //   event,
+        //   "CDD ID ->",
+        //   cddId
+        // );
+
         // Handle call hangup event
         const { channel, reason } = event;
         endTime = new Date();
 
-        if (parseInt(event.connectedlinenum) === cddId) {
-          console.log("EVENT ERROR CHECK ->", event.uniqueid);
+        console.log("");
 
+        if (parseInt(event.connectedlinenum) === cddId) {
           prisma.callResponseCDR
             .create({
               data: {
@@ -95,7 +102,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
               },
             })
             .then((res) => {
-              console.log("CDR CREATED!", event);
+              // console.log("CDR CREATED!", event);
             })
             .catch((err) => {
               console.log("UNIQUE ERROR ->", err);
@@ -106,6 +113,41 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
         } else {
           resolve(); // Resolve if the condition does not match
         }
+      }
+
+      if (event.event === "Cdr") {
+        console.log("CDR EVENT ->", event);
+
+        prisma.cdr
+          .create({
+            data: {
+              source: event.source,
+              destination: event.destination,
+              destinationContext: event.destinationcontext,
+              callerId: event.callerid,
+              channel: event.channel,
+              destinationChannel: event.destinationchannel,
+              lastApplication: event.lastapplication,
+              lastData: event.lastdata,
+              startTime: event.starttime,
+              answerTime: event.answertime,
+              endTime: event.endtime,
+              duration: event.duration,
+              billableSeconds: event.billableseconds,
+              disposition: event.disposition,
+              amaFlags: event.amaflags,
+              uniqueId: event.uniqueid,
+              userField: event.userfield,
+            },
+          })
+          .then((res) => {
+            console.log("CDR REPORT CREATED ->", res);
+          })
+          .catch((err) => {
+            console.log("THERE WAS ERROR WHILE CREATING CDR REPORT ->", err);
+          });
+
+        console.log("event CDR", event);
       }
     });
 

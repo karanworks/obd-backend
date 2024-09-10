@@ -127,6 +127,7 @@ model CampaignDialingData{
   campaignDataSettingId Int
   campaignId Int
   phoneNumber String
+  status String @default("Pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())  
 }
@@ -178,23 +179,32 @@ model Gateway{
 
 
 model Cdr{
-  calldate DateTime
-  clid String
-  src String
-  dst String
-  dcontext String
+  id Int @id @default(autoincrement())
+  source String 
+  destination String
+  destinationContext String
+  callerId String
   channel String
-  dstchannel String
-  lastapp String
-  lastdata String
-  duration Int
-  billsec Int
+  destinationChannel String
+  lastApplication String
+  lastData String
+  startTime String
+  answerTime String
+  endTime String
+  duration String
+  billableSeconds String
   disposition String
-  amaflags Int
-  accountcode String
-  uniqueid String @unique
-  userfield String @db.VarChar(255)
-  peeraccount String
-  linkedid String
-  sequence Int
+  amaFlags String
+  uniqueId String
+  userField String @db.VarChar(255)
 }
+
+
+
+// CDR REMAINING PROPERTIES MAYBE?
+// calldate DateTime
+// duration Int
+// accountcode String
+// peeraccount String
+// linkedid String
+// sequence Int
