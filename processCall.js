@@ -4,29 +4,44 @@ const makeCall = require("./makeCall");
 
 const getCampaignPhoneNumbers = require("./getCampaignsPhoneNumbers");
 
+let stopCalling = false;
+
+function handleStopCalling() {
+  stopCalling = true;
+}
+
 async function processCall() {
+  if (stopCalling) {
+    return;
+  }
+
   let campaignPhoneNumbers = await getCampaignPhoneNumbers();
 
-  const phoneNumbers = campaignPhoneNumbers?.phoneNumbers;
+  const phoneNumbers = campaignPhoneNumbers?.phoneNumbers && [
+    ...campaignPhoneNumbers?.phoneNumbers,
+  ];
 
   if (!campaignPhoneNumbers) {
     setTimer();
     return;
   }
 
-  for (
-    let i = 0;
-    i < phoneNumbers?.length;
-    i += campaignPhoneNumbers.channels
-  ) {
-    const numberToCall = phoneNumbers.splice(0, campaignPhoneNumbers.channels);
+  // temporary storing length for loop
+  const tempLength = campaignPhoneNumbers?.phoneNumbers?.length;
+
+  for (let i = 0; i < tempLength; i += campaignPhoneNumbers?.channels) {
+    if (stopCalling) {
+      return;
+    }
+
+    const numberToCall = phoneNumbers.splice(0, campaignPhoneNumbers?.channels);
 
     await Promise.all(
       numberToCall.map((number) =>
         makeCall(
           number.phoneNumber,
           `${number.phoneNumber}<${number.id}>`,
-          campaignPhoneNumbers.campaign.dialplanName,
+          campaignPhoneNumbers?.campaign.dialplanName,
           number.id
         )
       )
@@ -59,7 +74,6 @@ async function processCall() {
 
   await processCall();
 }
-processCall();
 
 function setTimer() {
   console.log("-----------------PROCESSING CALL AGAIN-----------------");
@@ -67,3 +81,5 @@ function setTimer() {
     processCall();
   }, 5000);
 }
+
+module.exports = { processCall, setTimer, handleStopCalling };

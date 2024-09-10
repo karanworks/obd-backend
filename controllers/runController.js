@@ -4,6 +4,7 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const fs = require("fs");
 const path = require("path");
+const { processCall, handleStopCalling } = require("../processCall");
 
 class RunController {
   async runGet(req, res) {
@@ -36,7 +37,7 @@ class RunController {
               });
 
             // pending data count
-            const pendingData = await campaignDialingData.reduce(
+            const pendingData = await campaignDialingData?.reduce(
               async (prevPromise, data) => {
                 const prev = await prevPromise; // Wait for the previous promise to resolve
                 const status = await prisma.campaignDialingDataStatus.findFirst(
@@ -47,7 +48,7 @@ class RunController {
                   }
                 );
 
-                return prev + (status.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
+                return prev + (status?.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
               },
               Promise.resolve(0)
             );
@@ -63,7 +64,7 @@ class RunController {
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-        response.success(res, "Designs fetched!", {
+        response.success(res, "Runs fetched!", {
           ...adminDataWithoutPassword,
           campaignDataSettings: data,
         });
@@ -74,7 +75,7 @@ class RunController {
           .json({ message: "user not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while getting design", error);
+      console.log("error while getting runs", error);
     }
   }
 
@@ -124,14 +125,18 @@ class RunController {
           });
 
         // Fetch newly created records
-        const createdDialingData = await prisma.campaignDialingData.findMany({
-          where: {
-            campaignDataSettingId: newCampaigningDataSetting.id,
-          },
-        });
+        const createdDialingData = await prisma.campaignDialingData
+          .findMany({
+            where: {
+              campaignDataSettingId: newCampaigningDataSetting.id,
+            },
+          })
+          .then(() => {
+            processCall(); // start calling on this data
+          });
 
         // Create status for each created record
-        const statusData = createdDialingData.map((dialingData) => ({
+        const statusData = createdDialingData?.map((dialingData) => ({
           campaignDialingDataId: dialingData.id,
         }));
 
@@ -223,6 +228,7 @@ class RunController {
     }
   }
 
+  // TO ACTIVATE OR DEACTIVATE RUN
   async runRemoveDelete(req, res) {
     try {
       const token = req.cookies.token;
@@ -263,6 +269,20 @@ class RunController {
             },
           });
 
+        console.log(
+          "ACTIVATED/DEACTIVATED CAMPAIGN ->",
+          removedCampaignDataSetting
+        );
+
+        if (removedCampaignDataSetting.status === 1) {
+          console.log("CONDITION TRIGGED FOR ACTIVATION");
+
+          processCall();
+        } else if (removedCampaignDataSetting.status === 0) {
+          console.log("CONDITION TRIGGED FOR DEACTIVATION");
+          handleStopCalling();
+        }
+
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Run removed!", {
@@ -280,7 +300,7 @@ class RunController {
           .json({ message: "user not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while removing design", error);
+      console.log("error while removing run", error);
     }
   }
 }
