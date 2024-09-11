@@ -1,9 +1,9 @@
 const cron = require("node-cron");
+const { processCall } = require("../processCall");
 
-// Schedule a task to run every 5 minutes
-cron.schedule("*/5 * * * *", () => {
-  console.log("Running a task every 5 minutes");
-  // Add your job logic here
+cron.schedule("*/3 * * * *", () => {
+  console.log("Running a task every 30 minutes");
+  processCall();
 });
 
-console.log("Cron job scheduled to run every 5 minutes.");
+console.log("Cron job scheduled to run every 30 minutes.");

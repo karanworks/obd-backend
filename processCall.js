@@ -18,6 +18,8 @@ async function processCall() {
     return;
   }
 
+  console.log("PROCESS CALL FUNCTION WAS CALLED");
+
   let campaignPhoneNumbers = await getCampaignPhoneNumbers();
 
   const phoneNumbers = campaignPhoneNumbers?.phoneNumbers && [

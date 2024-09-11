@@ -41,27 +41,43 @@ class RunController {
               });
 
             // pending data count
-            const pendingData = await campaignDialingData?.reduce(
-              async (prevPromise, data) => {
-                const prev = await prevPromise; // Wait for the previous promise to resolve
-                const status = await prisma.campaignDialingDataStatus.findFirst(
-                  {
-                    where: {
-                      campaignDialingDataId: data.id,
-                    },
-                  }
-                );
+            // const pendingData = await campaignDialingData?.reduce(
+            //   async (prevPromise, data) => {
+            //     const prev = await prevPromise; // Wait for the previous promise to resolve
+            //     const status = await prisma.campaignDialingDataStatus.findFirst(
+            //       {
+            //         where: {
+            //           campaignDialingDataId: data.id,
+            //         },
+            //       }
+            //     );
 
-                return prev + (status?.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
+            //     return prev + (status?.status === 1 ? 1 : 0); // Add 1 if status is 1, otherwise add 0
+            //   },
+            //   Promise.resolve(0)
+            // );
+
+            const pendingData = await prisma.campaignDialingData.count({
+              where: {
+                campaignDataSettingId: campaignDataSetting.id,
+                campaignId: campaign.id,
+                status: "Pending",
               },
-              Promise.resolve(0)
-            );
+            });
+            const testedData = await prisma.campaignDialingData.count({
+              where: {
+                campaignDataSettingId: campaignDataSetting.id,
+                campaignId: campaign.id,
+                status: "Completed",
+              },
+            });
 
             return {
               ...campaignDataSetting,
               totalData: campaignDialingData.length,
               campaignName: campaign.campaignName,
               pendingData,
+              testedData,
             };
           })
         );
@@ -201,6 +217,21 @@ class RunController {
           },
         });
 
+        const pendingData = await prisma.campaignDialingData.count({
+          where: {
+            campaignDataSettingId: updatedRun.id,
+            campaignId: updatedRun.campaignId,
+            status: "Pending",
+          },
+        });
+        const testedData = await prisma.campaignDialingData.count({
+          where: {
+            campaignDataSettingId: updatedRun.id,
+            campaignId: updatedRun.campaignId,
+            status: "Completed",
+          },
+        });
+
         // pending data count
         // const pendingData = await campaignDialingData.reduce(
         //   async (prevPromise, data) => {
@@ -221,7 +252,8 @@ class RunController {
             ...updatedRun,
             campaignName: campaign.campaignName,
             totalData,
-            pendingData: 0,
+            pendingData,
+            testedData,
           },
         });
       } else {
@@ -263,6 +295,21 @@ class RunController {
           },
         });
 
+        const pendingData = await prisma.campaignDialingData.count({
+          where: {
+            campaignDataSettingId: currentStatus.id,
+            campaignId: campaign.id,
+            status: "Pending",
+          },
+        });
+        const testedData = await prisma.campaignDialingData.count({
+          where: {
+            campaignDataSettingId: currentStatus.id,
+            campaignId: campaign.id,
+            status: "Completed",
+          },
+        });
+
         const removedCampaignDataSetting =
           await prisma.campaignDataSetting.update({
             where: {
@@ -273,17 +320,10 @@ class RunController {
             },
           });
 
-        console.log(
-          "ACTIVATED/DEACTIVATED CAMPAIGN ->",
-          removedCampaignDataSetting
-        );
-
         if (removedCampaignDataSetting.status === 1) {
-          console.log("CONDITION TRIGGED FOR ACTIVATION");
           handleResumeCalling();
           processCall();
         } else if (removedCampaignDataSetting.status === 0) {
-          console.log("CONDITION TRIGGED FOR DEACTIVATION");
           handleStopCalling();
         }
 
@@ -295,6 +335,8 @@ class RunController {
             ...removedCampaignDataSetting,
             campaignName: campaign.campaignName,
             totalData: totalData,
+            pendingData,
+            testedData,
           },
         });
       } else {
