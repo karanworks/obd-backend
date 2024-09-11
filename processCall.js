@@ -9,11 +9,18 @@ let stopCalling = false;
 function handleStopCalling() {
   stopCalling = true;
 }
+function handleResumeCalling() {
+  stopCalling = false;
+}
 
 async function processCall() {
+  console.log("STOP CALL IN PROCESS CALL ->", stopCalling);
+
   if (stopCalling) {
     return;
   }
+
+  console.log("PROCESS CALL CALLED ");
 
   let campaignPhoneNumbers = await getCampaignPhoneNumbers();
 
@@ -82,4 +89,9 @@ function setTimer() {
   }, 5000);
 }
 
-module.exports = { processCall, setTimer, handleStopCalling };
+module.exports = {
+  processCall,
+  setTimer,
+  handleStopCalling,
+  handleResumeCalling,
+};

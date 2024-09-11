@@ -4,7 +4,11 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const fs = require("fs");
 const path = require("path");
-const { processCall, handleStopCalling } = require("../processCall");
+const {
+  processCall,
+  handleStopCalling,
+  handleResumeCalling,
+} = require("../processCall");
 
 class RunController {
   async runGet(req, res) {
@@ -276,7 +280,7 @@ class RunController {
 
         if (removedCampaignDataSetting.status === 1) {
           console.log("CONDITION TRIGGED FOR ACTIVATION");
-
+          handleResumeCalling();
           processCall();
         } else if (removedCampaignDataSetting.status === 0) {
           console.log("CONDITION TRIGGED FOR DEACTIVATION");
