@@ -14,13 +14,9 @@ function handleResumeCalling() {
 }
 
 async function processCall() {
-  console.log("STOP CALL IN PROCESS CALL ->", stopCalling);
-
   if (stopCalling) {
     return;
   }
-
-  console.log("PROCESS CALL CALLED ");
 
   let campaignPhoneNumbers = await getCampaignPhoneNumbers();
 
@@ -29,7 +25,7 @@ async function processCall() {
   ];
 
   if (!campaignPhoneNumbers) {
-    setTimer();
+    // setTimer();
     return;
   }
 
@@ -82,16 +78,16 @@ async function processCall() {
   await processCall();
 }
 
-function setTimer() {
-  console.log("-----------------PROCESSING CALL AGAIN-----------------");
-  setTimeout(() => {
-    processCall();
-  }, 5000);
-}
+// function setTimer() {
+//   console.log("-----------------PROCESSING CALL AGAIN-----------------");
+//   setTimeout(() => {
+//     processCall();
+//   }, 5000);
+// }
 
 module.exports = {
   processCall,
-  setTimer,
+  // setTimer,
   handleStopCalling,
   handleResumeCalling,
 };
