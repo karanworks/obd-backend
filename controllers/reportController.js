@@ -33,7 +33,7 @@ class ReportController {
         //     ('0') as StartTime,
         //     ('0') as EndTime,
         //     \`calldate\`,
-        //     TIME_FORMAT(SEC_TO_TIME(\`duration\`), '%H:%i:%s') AS duration,
+        // TIME_FORMAT(SEC_TO_TIME(\`duration\`), '%H:%i:%s') AS duration,
         //     TIME_FORMAT(SEC_TO_TIME(\`billsec\`), '%H:%i:%s') AS billsec,
         //     \`causeTxt\`,
         //     \`exten\`
@@ -52,27 +52,27 @@ class ReportController {
         // `);
         const reports = await prisma.$queryRawUnsafe(`
           SELECT 
-            \`connectedlinename\` As phoneNumber,
-            (SELECT \`campaignName\` FROM \`Campaigns\` WHERE \`id\` = CampaignDialingData.campaignId) AS CampaignName,
-            \`channelStateDesc\`,
-            ('0') as StartTime,
-            ('0') as EndTime,
-            TIME_FORMAT(SEC_TO_TIME(\`duration\`), '%H:%i:%s') AS duration,
-            TIME_FORMAT(SEC_TO_TIME(\`billableSeconds\`), '%H:%i:%s') AS billsec,
-            \`causeTxt\`,
-            \`exten\`
+            (SELECT campaignName FROM Campaigns WHERE id = CampaignDialingData.campaignId) AS CampaignName,
+            channelStateDesc,
+            CallResponseCDR.connectedlinename AS phoneNumber,
+            CallResponseCDR.startTime,
+            CallResponseCDR.endTime,
+            TIME_FORMAT(SEC_TO_TIME(duration), '%H:%i:%s') AS duration,
+            TIME_FORMAT(SEC_TO_TIME(billableSeconds), '%H:%i:%s') AS billsec,
+            causeTxt,
+            exten
           FROM 
-            \`CallResponseCDR\` 
+            CallResponseCDR 
           LEFT JOIN 
-            (SELECT \`startTime\`, \`duration\`, \`billableSeconds\`, \`uniqueid\` FROM \`Cdr\` WHERE 1) as rowCdr
-            ON rowCdr.\`uniqueid\` = CallResponseCDR.uniqueid 
+            (SELECT duration, billableSeconds, uniqueId FROM Cdr GROUP BY duration, billableSeconds, uniqueId) as rowCdr 
+            ON rowCdr.uniqueid = CallResponseCDR.uniqueid 
           INNER JOIN 
-            \`CampaignDialingData\` 
-            ON CampaignDialingData.id = \`connectedlinenum\` 
+            CampaignDialingData 
+            ON CampaignDialingData.id = connectedlinenum 
           WHERE 
-            \`connectedlinenum\` IN (SELECT \`id\` FROM \`CampaignDialingData\` WHERE \`campaignId\` = ${campaign.id})
+            connectedlinenum IN (SELECT id FROM CampaignDialingData WHERE campaignId = '61')  
           ORDER BY 
-            \`CallResponseCDR\`.\`exten\` ASC;
+            CallResponseCDR.exten ASC;
         `);
 
         response.success(res, "Report fetched!", { reports });
