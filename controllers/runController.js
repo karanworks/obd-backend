@@ -102,19 +102,14 @@ class RunController {
   async runCreatePost(req, res) {
     try {
       const { campaignId, date, startTime, endTime, workDays } = req.body;
-
       const { buffer } = req.file;
-
       const csvString = buffer.toString();
-
       const rows = csvString.trim().split("\n");
-      rows.shift(); // removed the first element because that was header of csv column ("Mobile Numbers")
+      rows.shift(); // Remove header row
 
       const loggedInUser = await getLoggedInUser(req, res);
       const campaign = await prisma.campaigns.findFirst({
-        where: {
-          id: parseInt(campaignId),
-        },
+        where: { id: parseInt(campaignId) },
       });
 
       if (loggedInUser) {
@@ -129,55 +124,65 @@ class RunController {
             },
           });
 
-        const data = rows.map((row) => {
-          const phoneNumber = row.trim(); // This removes the \r from the end
-          return {
-            phoneNumber: phoneNumber,
-            campaignDataSettingId: newCampaigningDataSetting.id,
-            campaignId: newCampaigningDataSetting.campaignId,
-          };
-        });
+        const data = rows.map((row) => ({
+          phoneNumber: row.trim(), // Removes the \r from the end
+          campaignDataSettingId: newCampaigningDataSetting.id,
+          campaignId: newCampaigningDataSetting.campaignId,
+        }));
 
-        // create record for each individual row (mobile number)
+        // Create record for each individual row (mobile number)
         const newCampaignDialingData =
           await prisma.campaignDialingData.createMany({
             data: data,
           });
 
         // Fetch newly created records
-        const createdDialingData = await prisma.campaignDialingData
-          .findMany({
-            where: {
-              campaignDataSettingId: newCampaigningDataSetting.id,
-            },
-          })
-          .then(() => {
-            processCall(); // start calling on this data
-          });
-
-        // Create status for each created record
-        const statusData = createdDialingData?.map((dialingData) => ({
-          campaignDialingDataId: dialingData.id,
-        }));
-
-        await prisma.campaignDialingDataStatus.createMany({
-          data: statusData,
+        const createdDialingData = await prisma.campaignDialingData.findMany({
+          where: {
+            campaignDataSettingId: newCampaigningDataSetting.id,
+          },
         });
 
-        const campaignDataSetting = {
-          ...newCampaigningDataSetting,
-          campaignName: campaign.campaignName,
-          totalData: newCampaignDialingData.count,
-          pendingData: newCampaignDialingData.count, // because none of the number has been called yet because the setting has just been created
-          testedData: 0,
-        };
+        // Only call processCall if dialing data was successfully created
+        if (createdDialingData.length > 0) {
+          processCall(); // Start calling on this data
 
-        response.success(res, "Run Created Successfully", campaignDataSetting);
+          // Create status for each created record
+          const statusData = createdDialingData.map((dialingData) => ({
+            campaignDialingDataId: dialingData.id,
+          }));
+
+          await prisma.campaignDialingDataStatus.createMany({
+            data: statusData,
+          });
+
+          const campaignDataSetting = {
+            ...newCampaigningDataSetting,
+            campaignName: campaign.campaignName,
+            totalData: newCampaignDialingData.count,
+            pendingData: newCampaignDialingData.count,
+            testedData: 0,
+          };
+
+          console.log(
+            "UPDATED RUN AFTER UPLOADING NUMBERS ->",
+            campaignDataSetting
+          );
+
+          response.success(
+            res,
+            "Run Created Successfully",
+            campaignDataSetting
+          );
+        } else {
+          response.error(res, "No dialing data created");
+        }
       } else {
         response.error(res, "User not logged in");
       }
     } catch (error) {
-      console.log("error while design creation ->", error);
+      console.log("Error while creating the run ->", error);
+      response.error(res, "Error occurred");
     }
   }
 

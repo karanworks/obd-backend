@@ -147,27 +147,22 @@ class CampaignsController {
             updatedCampaign,
           });
         } else {
-          // update the details in user table as well
-          const campaignToBeUpdated = await prisma.campaigns.findFirst({
+          const updatedCampaign = await prisma.campaigns.update({
             where: {
-              id: campaignFound.id,
-            },
-          });
-
-          const updatedTeam = await prisma.campaigns.update({
-            where: {
-              id: parseInt(teamId),
+              id: parseInt(campaignId),
             },
 
             data: {
-              teamName,
-              email: email.toLowerCase(),
-              password,
+              campaignName,
+              channels,
+              welcomeMessageText,
+              invalidMessageText,
+              timeOutMessageText,
             },
           });
 
           response.success(res, "Campaign updated successfully!", {
-            updatedTeam,
+            updatedCampaign,
           });
         }
       } else {
