@@ -60,17 +60,18 @@ class ReportController {
             TIME_FORMAT(SEC_TO_TIME(duration), '%H:%i:%s') AS duration,
             TIME_FORMAT(SEC_TO_TIME(billableSeconds), '%H:%i:%s') AS billsec,
             causeTxt,
-            exten
+            exten,
+            answerTime
           FROM 
             CallResponseCDR 
           LEFT JOIN 
-            (SELECT duration, billableSeconds, uniqueId FROM Cdr GROUP BY duration, billableSeconds, uniqueId) as rowCdr 
+            (SELECT answerTime, duration, billableSeconds, uniqueId FROM Cdr GROUP BY duration, billableSeconds, uniqueId, answerTime) as rowCdr 
             ON rowCdr.uniqueid = CallResponseCDR.uniqueid 
           INNER JOIN 
             CampaignDialingData 
             ON CampaignDialingData.id = connectedlinenum 
           WHERE 
-            connectedlinenum IN (SELECT id FROM CampaignDialingData WHERE campaignId = '61')  
+            connectedlinenum IN (SELECT id FROM CampaignDialingData WHERE campaignId = ${campaign.id})  
           ORDER BY 
             CallResponseCDR.exten ASC;
         `);
