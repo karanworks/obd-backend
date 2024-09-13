@@ -128,6 +128,8 @@ class CampaignsController {
       const audioFiles = req.files;
       // const audioProperties = Object.keys(req.files);
 
+      console.log("AUDIO FILES ->", audioFiles);
+
       const baseUrl = "http://192.168.1.200/audio";
 
       // finding user from id
@@ -185,7 +187,7 @@ class CampaignsController {
         response.error(res, "campaign not found!");
       }
     } catch (error) {
-      console.log("error while updating team controller", error);
+      console.log("error while updating campaign controller", error);
     }
   }
 
