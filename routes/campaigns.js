@@ -28,6 +28,7 @@ CampaignRouter.post(
 );
 CampaignRouter.patch(
   "/campaign/:campaignId/edit",
+  multiUpload,
   CampaignController.campaignUpdatePatch
 );
 CampaignRouter.patch(

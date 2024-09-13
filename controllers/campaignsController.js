@@ -65,7 +65,7 @@ class CampaignsController {
         const audioFiles = req.files;
         // const audioProperties = Object.keys(req.files);
 
-        const baseUrl = "http://localhost:3008/audio";
+        const baseUrl = "http://192.168.1.200/audio";
 
         const campaignAlreadyExist = await prisma.campaigns.findFirst({
           where: {
@@ -120,9 +120,15 @@ class CampaignsController {
         invalidMessageText,
         timeOutMessageText,
         status,
+        gatewayId,
       } = req.body;
 
       const { campaignId } = req.params;
+
+      const audioFiles = req.files;
+      // const audioProperties = Object.keys(req.files);
+
+      const baseUrl = "http://192.168.1.200/audio";
 
       // finding user from id
       const campaignFound = await prisma.campaigns.findFirst({
@@ -156,8 +162,18 @@ class CampaignsController {
               campaignName,
               channels,
               welcomeMessageText,
+              welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
+                ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
+                : null,
               invalidMessageText,
+              invalidMessageAudio: audioFiles["invalidMessageAudio"]
+                ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
+                : null,
               timeOutMessageText,
+              timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
+                ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
+                : null,
+              gatewayId: gatewayId,
             },
           });
 
