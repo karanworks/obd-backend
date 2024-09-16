@@ -128,8 +128,6 @@ class CampaignsController {
       const audioFiles = req.files;
       // const audioProperties = Object.keys(req.files);
 
-      console.log("AUDIO FILES ->", audioFiles);
-
       const baseUrl = "http://192.168.1.200/audio";
 
       // finding user from id
@@ -163,21 +161,61 @@ class CampaignsController {
             data: {
               campaignName,
               channels,
-              welcomeMessageText,
+              welcomeMessageText: audioFiles["welcomeMessageAudio"]
+                ? ""
+                : welcomeMessageText,
               welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
                 ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
                 : null,
-              invalidMessageText,
+              invalidMessageText: audioFiles["invalidMessageAudio"]
+                ? ""
+                : invalidMessageText,
               invalidMessageAudio: audioFiles["invalidMessageAudio"]
                 ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
                 : null,
-              timeOutMessageText,
+              timeOutMessageText: audioFiles["timeOutMessageAudio"]
+                ? ""
+                : timeOutMessageText,
               timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
                 ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
                 : null,
               gatewayId: gatewayId,
             },
           });
+
+          if (updatedCampaign) {
+            const filePath = path.resolve(
+              __dirname,
+              `../asterisk/dialplan/${campaignFound.campaignName
+                .split(" ")
+                .join("_")}.conf`
+            );
+
+            fs.readFile(filePath, "utf-8", (err, data) => {
+              let lines = data.split("\n");
+
+              if (updatedCampaign.welcomeMessageText) {
+                const modifiedLines = lines.map((line) => {
+                  return line.includes(campaignFound.welcomeMessageText)
+                    ? line.replace(
+                        campaignFound.welcomeMessageText,
+                        welcomeMessageText
+                      ) // Replace with "new message"
+                    : line;
+                });
+
+                const modifiedContent = modifiedLines.join("\n");
+
+                fs.writeFile(filePath, modifiedContent, "utf8", (err) => {
+                  if (err) {
+                    console.error("Error writing to the file:", err);
+                    return;
+                  }
+                  console.log("File updated successfully!");
+                });
+              }
+            });
+          }
 
           response.success(res, "Campaign updated successfully!", {
             updatedCampaign,
