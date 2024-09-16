@@ -191,29 +191,54 @@ class CampaignsController {
                 .join("_")}.conf`
             );
 
+            console.log("FILE PATH ->", filePath);
+
             fs.readFile(filePath, "utf-8", (err, data) => {
               let lines = data.split("\n");
 
               if (updatedCampaign.welcomeMessageText) {
-                const modifiedLines = lines.map((line) => {
-                  return line.includes(campaignFound.welcomeMessageText)
+                lines = lines.map((line) =>
+                  line.includes(campaignFound.welcomeMessageText)
                     ? line.replace(
                         campaignFound.welcomeMessageText,
-                        welcomeMessageText
+                        updatedCampaign.welcomeMessageText
+                      ) // Replace with the new welcome message
+                    : line
+                );
+              }
+
+              if (updatedCampaign.invalidMessageText) {
+                lines = lines.map((line) =>
+                  line.includes(campaignFound.invalidMessageText)
+                    ? line.replace(
+                        campaignFound.invalidMessageText,
+                        updatedCampaign.invalidMessageText
+                      ) // Replace with the new invalid message
+                    : line
+                );
+              }
+
+              if (updatedCampaign.timeOutMessageText) {
+                lines = lines.map((line) => {
+                  return line.includes(campaignFound.timeOutMessageText)
+                    ? line.replace(
+                        campaignFound.timeOutMessageText,
+                        timeOutMessageText
                       ) // Replace with "new message"
                     : line;
                 });
-
-                const modifiedContent = modifiedLines.join("\n");
-
-                fs.writeFile(filePath, modifiedContent, "utf8", (err) => {
-                  if (err) {
-                    console.error("Error writing to the file:", err);
-                    return;
-                  }
-                  console.log("File updated successfully!");
-                });
               }
+
+              const modifiedContent = lines.join("\n");
+
+              fs.writeFile(filePath, modifiedContent, "utf8", (err) => {
+                if (err) {
+                  console.error("Error writing to the file:", err);
+                  return;
+                }
+
+                console.log("File updated successfully.");
+              });
             });
           }
 
