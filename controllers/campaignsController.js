@@ -191,42 +191,172 @@ class CampaignsController {
                 .join("_")}.conf`
             );
 
-            console.log("FILE PATH ->", filePath);
-
             fs.readFile(filePath, "utf-8", (err, data) => {
               let lines = data.split("\n");
 
-              if (updatedCampaign.welcomeMessageText) {
-                lines = lines.map((line) =>
-                  line.includes(campaignFound.welcomeMessageText)
-                    ? line.replace(
-                        campaignFound.welcomeMessageText,
-                        updatedCampaign.welcomeMessageText
-                      ) // Replace with the new welcome message
-                    : line
-                );
+              if (campaignFound.welcomeMessageText) {
+                if (updatedCampaign.welcomeMessageText) {
+                  lines = lines.map((line) =>
+                    line.includes(campaignFound.welcomeMessageText)
+                      ? line.replace(
+                          campaignFound.welcomeMessageText,
+                          updatedCampaign.welcomeMessageText
+                        ) // Replace with the new welcome message
+                      : line
+                  );
+                }
+
+                if (updatedCampaign.welcomeMessageAudio) {
+                  lines = lines.map((line) => {
+                    if (
+                      line ===
+                      `same => n,agi(googletts.agi,"${campaignFound.welcomeMessageText}",en)`
+                    ) {
+                      return `same => n,Background(asterisk/audio/${audioFiles["welcomeMessageAudio"][0].filename})`;
+                    } else {
+                      return line;
+                    }
+                  });
+                }
+              }
+              if (campaignFound.welcomeMessageAudio) {
+                if (updatedCampaign.welcomeMessageText) {
+                  lines = lines.map((line) => {
+                    if (
+                      line ===
+                      `same => n,Background(asterisk/audio/${campaignFound.welcomeMessageAudio
+                        .split("/")
+                        .at(-1)})`
+                    ) {
+                      return `same => n,agi(googletts.agi,"${welcomeMessageText}",en)`;
+                    } else {
+                      return line;
+                    }
+                  });
+                }
+
+                if (updatedCampaign.welcomeMessageAudio) {
+                  lines = lines.map((line) =>
+                    line.includes(
+                      campaignFound.welcomeMessageAudio.split("/").at(-1)
+                    )
+                      ? line.replace(
+                          campaignFound.welcomeMessageAudio.split("/").at(-1),
+                          audioFiles["welcomeMessageAudio"][0].filename
+                        ) // Replace with the new welcome message
+                      : line
+                  );
+                }
               }
 
-              if (updatedCampaign.invalidMessageText) {
-                lines = lines.map((line) =>
-                  line.includes(campaignFound.invalidMessageText)
-                    ? line.replace(
-                        campaignFound.invalidMessageText,
-                        updatedCampaign.invalidMessageText
-                      ) // Replace with the new invalid message
-                    : line
-                );
+              if (campaignFound.invalidMessageText) {
+                if (updatedCampaign.invalidMessageText) {
+                  lines = lines.map((line) =>
+                    line.includes(campaignFound.invalidMessageText)
+                      ? line.replace(
+                          campaignFound.invalidMessageText,
+                          updatedCampaign.invalidMessageText
+                        ) // Replace with the new welcome message
+                      : line
+                  );
+                }
+
+                if (updatedCampaign.welcomeMessageAudio) {
+                  lines = lines.map((line) => {
+                    if (
+                      line ===
+                      `same => n,agi(googletts.agi,"${campaignFound.invalidMessageText}",en)`
+                    ) {
+                      return `same => n,Background(asterisk/audio/${audioFiles["invalidMessageAudio"][0].filename})`;
+                    } else {
+                      return line;
+                    }
+                  });
+                }
+              }
+              if (campaignFound.invalidMessageAudio) {
+                if (updatedCampaign.invalidMessageText) {
+                  lines = lines.map((line) => {
+                    if (
+                      line ===
+                      `same => n,Background(asterisk/audio/${campaignFound.invalidMessageAudio
+                        .split("/")
+                        .at(-1)})`
+                    ) {
+                      return `same => n,agi(googletts.agi,"${invalidMessageText}",en)`;
+                    } else {
+                      return line;
+                    }
+                  });
+                }
+
+                if (updatedCampaign.invalidMessageAudio) {
+                  lines = lines.map((line) =>
+                    line.includes(
+                      campaignFound.invalidMessageAudio.split("/").at(-1)
+                    )
+                      ? line.replace(
+                          campaignFound.invalidMessageAudio.split("/").at(-1),
+                          audioFiles["invalidMessageAudio"][0].filename
+                        ) // Replace with the new welcome message
+                      : line
+                  );
+                }
               }
 
-              if (updatedCampaign.timeOutMessageText) {
-                lines = lines.map((line) => {
-                  return line.includes(campaignFound.timeOutMessageText)
-                    ? line.replace(
-                        campaignFound.timeOutMessageText,
-                        timeOutMessageText
-                      ) // Replace with "new message"
-                    : line;
-                });
+              if (campaignFound.timeOutMessageText) {
+                if (updatedCampaign.timeOutMessageText) {
+                  lines = lines.map((line) =>
+                    line.includes(campaignFound.timeOutMessageText)
+                      ? line.replace(
+                          campaignFound.timeOutMessageText,
+                          updatedCampaign.timeOutMessageText
+                        ) // Replace with the new welcome message
+                      : line
+                  );
+                }
+
+                if (updatedCampaign.timeOutMessageAudio) {
+                  lines = lines.map((line) => {
+                    if (
+                      line ===
+                      `same => n,agi(googletts.agi,"${campaignFound.timeOutMessageText}",en)`
+                    ) {
+                      return `same => n,Background(asterisk/audio/${audioFiles["timeOutMessageAudio"][0].filename})`;
+                    } else {
+                      return line;
+                    }
+                  });
+                }
+              }
+              if (campaignFound.timeOutMessageAudio) {
+                if (updatedCampaign.timeOutMessageText) {
+                  lines = lines.map((line) => {
+                    if (
+                      line ===
+                      `same => n,Background(asterisk/audio/${campaignFound.timeOutMessageAudio
+                        .split("/")
+                        .at(-1)})`
+                    ) {
+                      return `same => n,agi(googletts.agi,"${timeOutMessageText}",en)`;
+                    } else {
+                      return line;
+                    }
+                  });
+                }
+
+                if (updatedCampaign.timeOutMessageAudio) {
+                  lines = lines.map((line) =>
+                    line.includes(
+                      campaignFound.timeOutMessageAudio.split("/").at(-1)
+                    )
+                      ? line.replace(
+                          campaignFound.timeOutMessageAudio.split("/").at(-1),
+                          audioFiles["timeOutMessageAudio"][0].filename
+                        ) // Replace with the new welcome message
+                      : line
+                  );
+                }
               }
 
               const modifiedContent = lines.join("\n");
