@@ -153,6 +153,29 @@ class CampaignsController {
             updatedCampaign,
           });
         } else {
+          console.log("CAMPAIGN FOUND FOR UPDATING VALUE ->", campaignFound);
+          console.log(
+            "AUDIO FOUND FOR UPDATING VALUE ->",
+            audioFiles["welcomeMessageAudio"]
+          );
+
+          console.log("CONDITION FOR REPLACING TEXT 0 ->", welcomeMessageText);
+
+          console.log(
+            "CONDITION FOR REPLACING TEXT 1 ->",
+            welcomeMessageText
+              ? null
+              : audioFiles["welcomeMessageAudio"]
+              ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
+              : campaignFound.welcomeMessageAudio || null
+          );
+          console.log(
+            "CONDITION FOR REPLACING TEXT 2->",
+            audioFiles["welcomeMessageAudio"]
+              ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
+              : campaignFound.welcomeMessageAudio || null
+          );
+
           const updatedCampaign = await prisma.campaigns.update({
             where: {
               id: parseInt(campaignId),
@@ -164,21 +187,27 @@ class CampaignsController {
               welcomeMessageText: audioFiles["welcomeMessageAudio"]
                 ? ""
                 : welcomeMessageText,
-              welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
+              welcomeMessageAudio: welcomeMessageText
+                ? null
+                : audioFiles["welcomeMessageAudio"]
                 ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
-                : null,
+                : campaignFound.welcomeMessageAudio || null,
               invalidMessageText: audioFiles["invalidMessageAudio"]
                 ? ""
                 : invalidMessageText,
-              invalidMessageAudio: audioFiles["invalidMessageAudio"]
+              invalidMessageAudio: invalidMessageText
+                ? null
+                : audioFiles["invalidMessageAudio"]
                 ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
-                : null,
+                : campaignFound.invalidMessageAudio || null,
               timeOutMessageText: audioFiles["timeOutMessageAudio"]
                 ? ""
                 : timeOutMessageText,
-              timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
+              timeOutMessageAudio: timeOutMessageText
+                ? null
+                : audioFiles["timeOutMessageAudio"]
                 ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
-                : null,
+                : campaignFound.timeOutMessageAudio || null,
               gatewayId: gatewayId,
             },
           });
@@ -194,7 +223,14 @@ class CampaignsController {
             fs.readFile(filePath, "utf-8", (err, data) => {
               let lines = data.split("\n");
 
+              console.log("CAMPAIGN FOUND ->", campaignFound);
+
               if (campaignFound.welcomeMessageText) {
+                console.log(
+                  "UPDATED CAMPAIGN WELCOME MESSAGE ->",
+                  updatedCampaign
+                );
+
                 if (updatedCampaign.welcomeMessageText) {
                   lines = lines.map((line) =>
                     line.includes(campaignFound.welcomeMessageText)
@@ -206,7 +242,10 @@ class CampaignsController {
                   );
                 }
 
-                if (updatedCampaign.welcomeMessageAudio) {
+                if (
+                  updatedCampaign.welcomeMessageAudio &&
+                  audioFiles["welcomeMessageAudio"]
+                ) {
                   lines = lines.map((line) => {
                     if (
                       line ===
@@ -220,6 +259,11 @@ class CampaignsController {
                 }
               }
               if (campaignFound.welcomeMessageAudio) {
+                console.log(
+                  "UPDATED CAMPAIGN WELCOME AUDIO ->",
+                  updatedCampaign
+                );
+
                 if (updatedCampaign.welcomeMessageText) {
                   lines = lines.map((line) => {
                     if (
@@ -235,7 +279,10 @@ class CampaignsController {
                   });
                 }
 
-                if (updatedCampaign.welcomeMessageAudio) {
+                if (
+                  updatedCampaign.welcomeMessageAudio &&
+                  audioFiles["welcomeMessageAudio"]
+                ) {
                   lines = lines.map((line) =>
                     line.includes(
                       campaignFound.welcomeMessageAudio.split("/").at(-1)
@@ -250,6 +297,10 @@ class CampaignsController {
               }
 
               if (campaignFound.invalidMessageText) {
+                console.log(
+                  "UPDATED CAMPAIGN INVALID MESSAGE ->",
+                  updatedCampaign
+                );
                 if (updatedCampaign.invalidMessageText) {
                   lines = lines.map((line) =>
                     line.includes(campaignFound.invalidMessageText)
@@ -261,7 +312,10 @@ class CampaignsController {
                   );
                 }
 
-                if (updatedCampaign.welcomeMessageAudio) {
+                if (
+                  updatedCampaign.invalidMessageAudio &&
+                  audioFiles["invalidMessageAudio"]
+                ) {
                   lines = lines.map((line) => {
                     if (
                       line ===
@@ -275,6 +329,10 @@ class CampaignsController {
                 }
               }
               if (campaignFound.invalidMessageAudio) {
+                console.log(
+                  "UPDATED CAMPAIGN INVALID AUDIO ->",
+                  updatedCampaign
+                );
                 if (updatedCampaign.invalidMessageText) {
                   lines = lines.map((line) => {
                     if (
@@ -290,7 +348,10 @@ class CampaignsController {
                   });
                 }
 
-                if (updatedCampaign.invalidMessageAudio) {
+                if (
+                  updatedCampaign.invalidMessageAudio &&
+                  audioFiles["invalidMessageAudio"]
+                ) {
                   lines = lines.map((line) =>
                     line.includes(
                       campaignFound.invalidMessageAudio.split("/").at(-1)
@@ -305,6 +366,10 @@ class CampaignsController {
               }
 
               if (campaignFound.timeOutMessageText) {
+                console.log(
+                  "UPDATED CAMPAIGN TIMEOUT MESSAGE ->",
+                  updatedCampaign
+                );
                 if (updatedCampaign.timeOutMessageText) {
                   lines = lines.map((line) =>
                     line.includes(campaignFound.timeOutMessageText)
@@ -316,7 +381,10 @@ class CampaignsController {
                   );
                 }
 
-                if (updatedCampaign.timeOutMessageAudio) {
+                if (
+                  updatedCampaign.timeOutMessageAudio &&
+                  audioFiles["timeOutMessageAudio"]
+                ) {
                   lines = lines.map((line) => {
                     if (
                       line ===
@@ -330,6 +398,10 @@ class CampaignsController {
                 }
               }
               if (campaignFound.timeOutMessageAudio) {
+                console.log(
+                  "UPDATED CAMPAIGN TIMEOUT MESSAGE AUDIO ->",
+                  updatedCampaign
+                );
                 if (updatedCampaign.timeOutMessageText) {
                   lines = lines.map((line) => {
                     if (
@@ -345,7 +417,10 @@ class CampaignsController {
                   });
                 }
 
-                if (updatedCampaign.timeOutMessageAudio) {
+                if (
+                  updatedCampaign.timeOutMessageAudio &&
+                  audioFiles["timeOutMessageAudio"]
+                ) {
                   lines = lines.map((line) =>
                     line.includes(
                       campaignFound.timeOutMessageAudio.split("/").at(-1)
