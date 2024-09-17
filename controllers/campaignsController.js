@@ -141,57 +141,53 @@ class CampaignsController {
             id: campaignFound.id,
           },
           data: {
-            data: {
-              campaignName,
-              welcomeMessageText,
-              welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
-                ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
-                : null,
-              invalidMessageText,
-              invalidMessageAudio: audioFiles["invalidMessageAudio"]
-                ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
-                : null,
-              timeOutMessageText,
-              timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
-                ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
-                : null,
-              status: 1,
-              gatewayId: gatewayId,
-            },
+            campaignName,
+            welcomeMessageText,
+            welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
+              ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
+              : null,
+            invalidMessageText,
+            invalidMessageAudio: audioFiles["invalidMessageAudio"]
+              ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
+              : null,
+            timeOutMessageText,
+            timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
+              ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
+              : null,
+            status: 1,
+            gatewayId: gatewayId,
           },
         });
 
-        if (campaignName !== campaignFound.campaignName) {
-          const oldFilePath = path.resolve(
-            __dirname,
-            `../asterisk/dialplan/${campaignFound.campaignName
-              .split(" ")
-              .join("_")}.conf`
-          );
+        const oldFilePath = path.resolve(
+          __dirname,
+          `../asterisk/dialplan/${campaignFound.campaignName
+            .split(" ")
+            .join("_")}.conf`
+        );
 
-          const dateTime = new Date();
-          const formattedDateTime = `${String(dateTime.getDate()).padStart(
-            2,
-            "0"
-          )}${String(dateTime.getMonth() + 1).padStart(2, "0")}${String(
-            dateTime.getFullYear()
-          ).slice(-2)}${String(dateTime.getHours()).padStart(2, "0")}${String(
-            dateTime.getMinutes()
-          ).padStart(2, "0")}${String(dateTime.getSeconds()).padStart(2, "0")}`;
+        const dateTime = new Date();
+        const formattedDateTime = `${String(dateTime.getDate()).padStart(
+          2,
+          "0"
+        )}${String(dateTime.getMonth() + 1).padStart(2, "0")}${String(
+          dateTime.getFullYear()
+        ).slice(-2)}${String(dateTime.getHours()).padStart(2, "0")}${String(
+          dateTime.getMinutes()
+        ).padStart(2, "0")}${String(dateTime.getSeconds()).padStart(2, "0")}`;
 
-          const newFilePath = path.resolve(
-            __dirname,
-            `../asterisk/dialplan/${campaignName
-              .split(" ")
-              .join("_")}_${formattedDateTime}.conf`
-          );
+        const newFilePath = path.resolve(
+          __dirname,
+          `../asterisk/dialplan/${campaignName
+            .split(" ")
+            .join("_")}_${formattedDateTime}.conf`
+        );
 
-          fs.rename(oldFilePath, newFilePath, (err) => {
-            if (err) {
-              console.log("Error while renaming dialplan file name ->", err);
-            }
-          });
-        }
+        fs.rename(oldFilePath, newFilePath, (err) => {
+          if (err) {
+            console.log("Error while renaming dialplan file name ->", err);
+          }
+        });
 
         this.writeFile(updatedCampaign);
 
@@ -249,7 +245,7 @@ class CampaignsController {
       console.log("error while removing campaign", error);
     }
   }
-  7;
+
   writeFile(newCampaign) {
     const dirPath = path.join(__dirname, "..", "asterisk/dialplan");
 
