@@ -115,11 +115,9 @@ class CampaignsController {
     try {
       const {
         campaignName,
-        channels,
         welcomeMessageText,
         invalidMessageText,
         timeOutMessageText,
-        status,
         gatewayId,
       } = req.body;
 
@@ -138,319 +136,68 @@ class CampaignsController {
       });
 
       if (campaignFound) {
-        if (status === 0 || status === 1) {
-          const updatedCampaign = await prisma.campaigns.update({
-            where: {
-              id: parseInt(teamId),
-            },
-
-            data: {
-              status,
-            },
-          });
-
-          response.success(res, "Campaigns removed successfully!", {
-            updatedCampaign,
-          });
-        } else {
-          console.log("CAMPAIGN FOUND FOR UPDATING VALUE ->", campaignFound);
-          console.log(
-            "AUDIO FOUND FOR UPDATING VALUE ->",
-            audioFiles["welcomeMessageAudio"]
-          );
-
-          console.log("CONDITION FOR REPLACING TEXT 0 ->", welcomeMessageText);
-
-          console.log(
-            "CONDITION FOR REPLACING TEXT 1 ->",
-            welcomeMessageText
-              ? null
-              : audioFiles["welcomeMessageAudio"]
-              ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
-              : campaignFound.welcomeMessageAudio || null
-          );
-          console.log(
-            "CONDITION FOR REPLACING TEXT 2->",
-            audioFiles["welcomeMessageAudio"]
-              ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
-              : campaignFound.welcomeMessageAudio || null
-          );
-
-          const updatedCampaign = await prisma.campaigns.update({
-            where: {
-              id: parseInt(campaignId),
-            },
-
+        const updatedCampaign = await prisma.campaigns.update({
+          where: {
+            id: campaignFound.id,
+          },
+          data: {
             data: {
               campaignName,
-              channels,
-              welcomeMessageText: audioFiles["welcomeMessageAudio"]
-                ? ""
-                : welcomeMessageText,
-              welcomeMessageAudio: welcomeMessageText
-                ? null
-                : audioFiles["welcomeMessageAudio"]
+              welcomeMessageText,
+              welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
                 ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
-                : campaignFound.welcomeMessageAudio || null,
-              invalidMessageText: audioFiles["invalidMessageAudio"]
-                ? ""
-                : invalidMessageText,
-              invalidMessageAudio: invalidMessageText
-                ? null
-                : audioFiles["invalidMessageAudio"]
+                : null,
+              invalidMessageText,
+              invalidMessageAudio: audioFiles["invalidMessageAudio"]
                 ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
-                : campaignFound.invalidMessageAudio || null,
-              timeOutMessageText: audioFiles["timeOutMessageAudio"]
-                ? ""
-                : timeOutMessageText,
-              timeOutMessageAudio: timeOutMessageText
-                ? null
-                : audioFiles["timeOutMessageAudio"]
+                : null,
+              timeOutMessageText,
+              timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
                 ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
-                : campaignFound.timeOutMessageAudio || null,
+                : null,
+              status: 1,
               gatewayId: gatewayId,
             },
-          });
+          },
+        });
 
-          if (updatedCampaign) {
-            const filePath = path.resolve(
-              __dirname,
-              `../asterisk/dialplan/${campaignFound.campaignName
-                .split(" ")
-                .join("_")}.conf`
-            );
+        if (campaignName !== campaignFound.campaignName) {
+          const oldFilePath = path.resolve(
+            __dirname,
+            `../asterisk/dialplan/${campaignFound.campaignName
+              .split(" ")
+              .join("_")}.conf`
+          );
 
-            fs.readFile(filePath, "utf-8", (err, data) => {
-              let lines = data.split("\n");
+          const dateTime = new Date();
+          const formattedDateTime = `${String(dateTime.getDate()).padStart(
+            2,
+            "0"
+          )}${String(dateTime.getMonth() + 1).padStart(2, "0")}${String(
+            dateTime.getFullYear()
+          ).slice(-2)}${String(dateTime.getHours()).padStart(2, "0")}${String(
+            dateTime.getMinutes()
+          ).padStart(2, "0")}${String(dateTime.getSeconds()).padStart(2, "0")}`;
 
-              console.log("CAMPAIGN FOUND ->", campaignFound);
+          const newFilePath = path.resolve(
+            __dirname,
+            `../asterisk/dialplan/${campaignName
+              .split(" ")
+              .join("_")}_${formattedDateTime}.conf`
+          );
 
-              if (campaignFound.welcomeMessageText) {
-                console.log(
-                  "UPDATED CAMPAIGN WELCOME MESSAGE ->",
-                  updatedCampaign
-                );
-
-                if (updatedCampaign.welcomeMessageText) {
-                  lines = lines.map((line) =>
-                    line.includes(campaignFound.welcomeMessageText)
-                      ? line.replace(
-                          campaignFound.welcomeMessageText,
-                          updatedCampaign.welcomeMessageText
-                        ) // Replace with the new welcome message
-                      : line
-                  );
-                }
-
-                if (
-                  updatedCampaign.welcomeMessageAudio &&
-                  audioFiles["welcomeMessageAudio"]
-                ) {
-                  lines = lines.map((line) => {
-                    if (
-                      line ===
-                      `same => n,agi(googletts.agi,"${campaignFound.welcomeMessageText}",en)`
-                    ) {
-                      return `same => n,Background(asterisk/audio/${audioFiles["welcomeMessageAudio"][0].filename})`;
-                    } else {
-                      return line;
-                    }
-                  });
-                }
-              }
-              if (campaignFound.welcomeMessageAudio) {
-                console.log(
-                  "UPDATED CAMPAIGN WELCOME AUDIO ->",
-                  updatedCampaign
-                );
-
-                if (updatedCampaign.welcomeMessageText) {
-                  lines = lines.map((line) => {
-                    if (
-                      line ===
-                      `same => n,Background(asterisk/audio/${campaignFound.welcomeMessageAudio
-                        .split("/")
-                        .at(-1)})`
-                    ) {
-                      return `same => n,agi(googletts.agi,"${welcomeMessageText}",en)`;
-                    } else {
-                      return line;
-                    }
-                  });
-                }
-
-                if (
-                  updatedCampaign.welcomeMessageAudio &&
-                  audioFiles["welcomeMessageAudio"]
-                ) {
-                  lines = lines.map((line) =>
-                    line.includes(
-                      campaignFound.welcomeMessageAudio.split("/").at(-1)
-                    )
-                      ? line.replace(
-                          campaignFound.welcomeMessageAudio.split("/").at(-1),
-                          audioFiles["welcomeMessageAudio"][0].filename
-                        ) // Replace with the new welcome message
-                      : line
-                  );
-                }
-              }
-
-              if (campaignFound.invalidMessageText) {
-                console.log(
-                  "UPDATED CAMPAIGN INVALID MESSAGE ->",
-                  updatedCampaign
-                );
-                if (updatedCampaign.invalidMessageText) {
-                  lines = lines.map((line) =>
-                    line.includes(campaignFound.invalidMessageText)
-                      ? line.replace(
-                          campaignFound.invalidMessageText,
-                          updatedCampaign.invalidMessageText
-                        ) // Replace with the new welcome message
-                      : line
-                  );
-                }
-
-                if (
-                  updatedCampaign.invalidMessageAudio &&
-                  audioFiles["invalidMessageAudio"]
-                ) {
-                  lines = lines.map((line) => {
-                    if (
-                      line ===
-                      `same => n,agi(googletts.agi,"${campaignFound.invalidMessageText}",en)`
-                    ) {
-                      return `same => n,Background(asterisk/audio/${audioFiles["invalidMessageAudio"][0].filename})`;
-                    } else {
-                      return line;
-                    }
-                  });
-                }
-              }
-              if (campaignFound.invalidMessageAudio) {
-                console.log(
-                  "UPDATED CAMPAIGN INVALID AUDIO ->",
-                  updatedCampaign
-                );
-                if (updatedCampaign.invalidMessageText) {
-                  lines = lines.map((line) => {
-                    if (
-                      line ===
-                      `same => n,Background(asterisk/audio/${campaignFound.invalidMessageAudio
-                        .split("/")
-                        .at(-1)})`
-                    ) {
-                      return `same => n,agi(googletts.agi,"${invalidMessageText}",en)`;
-                    } else {
-                      return line;
-                    }
-                  });
-                }
-
-                if (
-                  updatedCampaign.invalidMessageAudio &&
-                  audioFiles["invalidMessageAudio"]
-                ) {
-                  lines = lines.map((line) =>
-                    line.includes(
-                      campaignFound.invalidMessageAudio.split("/").at(-1)
-                    )
-                      ? line.replace(
-                          campaignFound.invalidMessageAudio.split("/").at(-1),
-                          audioFiles["invalidMessageAudio"][0].filename
-                        ) // Replace with the new welcome message
-                      : line
-                  );
-                }
-              }
-
-              if (campaignFound.timeOutMessageText) {
-                console.log(
-                  "UPDATED CAMPAIGN TIMEOUT MESSAGE ->",
-                  updatedCampaign
-                );
-                if (updatedCampaign.timeOutMessageText) {
-                  lines = lines.map((line) =>
-                    line.includes(campaignFound.timeOutMessageText)
-                      ? line.replace(
-                          campaignFound.timeOutMessageText,
-                          updatedCampaign.timeOutMessageText
-                        ) // Replace with the new welcome message
-                      : line
-                  );
-                }
-
-                if (
-                  updatedCampaign.timeOutMessageAudio &&
-                  audioFiles["timeOutMessageAudio"]
-                ) {
-                  lines = lines.map((line) => {
-                    if (
-                      line ===
-                      `same => n,agi(googletts.agi,"${campaignFound.timeOutMessageText}",en)`
-                    ) {
-                      return `same => n,Background(asterisk/audio/${audioFiles["timeOutMessageAudio"][0].filename})`;
-                    } else {
-                      return line;
-                    }
-                  });
-                }
-              }
-              if (campaignFound.timeOutMessageAudio) {
-                console.log(
-                  "UPDATED CAMPAIGN TIMEOUT MESSAGE AUDIO ->",
-                  updatedCampaign
-                );
-                if (updatedCampaign.timeOutMessageText) {
-                  lines = lines.map((line) => {
-                    if (
-                      line ===
-                      `same => n,Background(asterisk/audio/${campaignFound.timeOutMessageAudio
-                        .split("/")
-                        .at(-1)})`
-                    ) {
-                      return `same => n,agi(googletts.agi,"${timeOutMessageText}",en)`;
-                    } else {
-                      return line;
-                    }
-                  });
-                }
-
-                if (
-                  updatedCampaign.timeOutMessageAudio &&
-                  audioFiles["timeOutMessageAudio"]
-                ) {
-                  lines = lines.map((line) =>
-                    line.includes(
-                      campaignFound.timeOutMessageAudio.split("/").at(-1)
-                    )
-                      ? line.replace(
-                          campaignFound.timeOutMessageAudio.split("/").at(-1),
-                          audioFiles["timeOutMessageAudio"][0].filename
-                        ) // Replace with the new welcome message
-                      : line
-                  );
-                }
-              }
-
-              const modifiedContent = lines.join("\n");
-
-              fs.writeFile(filePath, modifiedContent, "utf8", (err) => {
-                if (err) {
-                  console.error("Error writing to the file:", err);
-                  return;
-                }
-
-                console.log("File updated successfully.");
-              });
-            });
-          }
-
-          response.success(res, "Campaign updated successfully!", {
-            updatedCampaign,
+          fs.rename(oldFilePath, newFilePath, (err) => {
+            if (err) {
+              console.log("Error while renaming dialplan file name ->", err);
+            }
           });
         }
+
+        this.writeFile(updatedCampaign);
+
+        response.success(res, "Campaign updated successfully!", {
+          updatedCampaign,
+        });
       } else {
         response.error(res, "campaign not found!");
       }
