@@ -11,7 +11,7 @@ function makeCall(destinationNumber, callerId, dialplan) {
   ami.action(
     {
       Action: "Originate",
-      Channel: `PJSIP/${extension}@gt206`, // Adjust for your trunk/channel
+      Channel: `PJSIP/${extension}@gateway1206`, // Adjust for your trunk/channel
       Context: context,
       Exten: extension,
       Priority: priority,
@@ -20,7 +20,7 @@ function makeCall(destinationNumber, callerId, dialplan) {
     },
     function (err, response) {
       if (err) {
-        console.error("Error making call:", err);
+        console.error("Error making call:", err, response);
         // reject(err); // Properly handle the error by rejecting the promise
       } else {
         console.log("Call initiated:", response);

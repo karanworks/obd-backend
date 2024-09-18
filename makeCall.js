@@ -28,7 +28,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
     dynamicVariables[randomVariableName].action(
       {
         Action: "Originate",
-        Channel: `PJSIP/${extension}@gt206`, // Adjust for your trunk/channel
+        Channel: `PJSIP/${extension}@gateway1206`, // Adjust for your trunk/channel
         Context: context,
         Exten: extension,
         Priority: priority,
@@ -116,8 +116,6 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
       }
 
       if (event.event === "Cdr") {
-        console.log("CDR EVENT ->", event);
-
         prisma.cdr
           .create({
             data: {
