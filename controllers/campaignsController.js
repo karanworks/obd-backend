@@ -143,21 +143,29 @@ class CampaignsController {
           data: {
             campaignName,
             welcomeMessageText,
-            welcomeMessageAudio: audioFiles["welcomeMessageAudio"]
+            welcomeMessageAudio: welcomeMessageText
+              ? null
+              : audioFiles["welcomeMessageAudio"]
               ? `${baseUrl}/${audioFiles["welcomeMessageAudio"][0].filename}`
-              : null,
+              : campaignFound.welcomeMessageAudio || null,
             invalidMessageText,
-            invalidMessageAudio: audioFiles["invalidMessageAudio"]
+            invalidMessageAudio: invalidMessageText
+              ? null
+              : audioFiles["invalidMessageAudio"]
               ? `${baseUrl}/${audioFiles["invalidMessageAudio"][0].filename}`
-              : null,
+              : campaignFound.invalidMessageAudio || null,
             timeOutMessageText,
-            timeOutMessageAudio: audioFiles["timeOutMessageAudio"]
+            timeOutMessageAudio: timeOutMessageText
+              ? null
+              : audioFiles["timeOutMessageAudio"]
               ? `${baseUrl}/${audioFiles["timeOutMessageAudio"][0].filename}`
-              : null,
+              : campaignFound.timeOutMessageAudio || null,
             status: 1,
             gatewayId: gatewayId,
           },
         });
+
+        console.log("UPDATED CAMPAIGN FOR RECHECK ->", updatedCampaign);
 
         const oldFilePath = path.resolve(
           __dirname,
