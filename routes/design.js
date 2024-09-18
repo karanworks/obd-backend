@@ -25,6 +25,7 @@ DesignRouter.post(
 );
 DesignRouter.patch(
   "/design/:designId/edit",
+  audioUpload,
   DesignController.designUpdatePatch
 );
 DesignRouter.patch(

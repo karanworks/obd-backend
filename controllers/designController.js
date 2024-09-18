@@ -57,7 +57,8 @@ class DesignController {
 
       const loggedInUser = await getLoggedInUser(req, res);
 
-      const baseUrl = "http://localhost:3008/audio";
+      const baseUrl = "http://192.168.1.200/audio";
+      // const baseUrl = "http://localhost:3008/audio";
 
       const designAlreadyExistOnKey = await prisma.design.findFirst({
         where: {
@@ -140,7 +141,19 @@ class DesignController {
     try {
       const { messageText, mobileNumber } = req.body;
 
+      console.log("DESIGN UPDATE VALUE CHECK ->", messageText, mobileNumber);
+
       const { designId } = req.params;
+
+      // const { messageAudio } = req.file;
+
+      // console.log(
+      //   "REQUEST AUDIO FILE ->",
+      //   messageAudio && `${baseUrl}/${req.file.filename}`
+      // );
+
+      const baseUrl = "http://192.168.1.200/audio";
+      // const baseUrl = "http://localhost:3008/audio";
 
       const designFound = await prisma.design.findFirst({
         where: {
@@ -157,6 +170,7 @@ class DesignController {
           data: {
             messageText,
             mobileNumber,
+            messageAudio: req.file && `${baseUrl}/${req.file.filename}`,
           },
         });
 
