@@ -141,16 +141,7 @@ class DesignController {
     try {
       const { messageText, mobileNumber } = req.body;
 
-      console.log("DESIGN UPDATE VALUE CHECK ->", messageText, mobileNumber);
-
       const { designId } = req.params;
-
-      // const { messageAudio } = req.file;
-
-      // console.log(
-      //   "REQUEST AUDIO FILE ->",
-      //   messageAudio && `${baseUrl}/${req.file.filename}`
-      // );
 
       const baseUrl = "http://192.168.1.200/audio";
       // const baseUrl = "http://localhost:3008/audio";
@@ -161,6 +152,12 @@ class DesignController {
         },
       });
 
+      const campaign = await prisma.campaigns.findFirst({
+        where: {
+          id: designFound.campaignId,
+        },
+      });
+
       if (designFound) {
         const updatedDesign = await prisma.design.update({
           where: {
@@ -168,11 +165,71 @@ class DesignController {
           },
 
           data: {
-            messageText,
-            mobileNumber,
-            messageAudio: req.file && `${baseUrl}/${req.file.filename}`,
+            messageText: messageText ? messageText : null,
+            mobileNumber: mobileNumber ? mobileNumber : null,
+            messageAudio: req.file ? `${baseUrl}/${req.file.filename}` : null,
           },
         });
+
+        if (updatedDesign) {
+          const dirPath = path.join(__dirname, "..", "asterisk/dialplan");
+
+          const fileName = campaign.campaignName.split(" ").join("_");
+
+          const filePath = path.join(dirPath, fileName + ".conf");
+
+          const dateTime = new Date();
+          const formattedDateTime = `${String(dateTime.getDate()).padStart(
+            2,
+            "0"
+          )}${String(dateTime.getMonth() + 1).padStart(2, "0")}${String(
+            dateTime.getFullYear()
+          ).slice(-2)}${String(dateTime.getHours()).padStart(2, "0")}${String(
+            dateTime.getMinutes()
+          ).padStart(2, "0")}${String(dateTime.getSeconds()).padStart(2, "0")}`;
+
+          fs.readFile(filePath, "utf-8", (err, data) => {
+            if (err) {
+              return console.log(
+                "Error while reading dialplan file while updating design"
+              );
+            }
+
+            const lines = data.split("\n");
+
+            // RENAMING THE OLD DIALPLAN FILE
+            fs.rename(
+              filePath,
+              dirPath + `/${fileName}_${formattedDateTime}.conf`,
+              (err) => {
+                if (err) {
+                  console.log(
+                    "Error renaming dilaplan file while updating design inside design controller",
+                    err
+                  );
+                }
+              }
+            );
+
+            // CREATING NEW DIALPLAN FILE WITH SAME DATA
+            fs.writeFile(filePath, data, "utf8", (err) => {
+              if (err) {
+                console.error("Error writing to the file:", err);
+                return;
+              }
+
+              console.log("File updated successfully.");
+            });
+
+            lines.forEach((line) => {
+              if (
+                line === `exten => 1,1,noOp("Presses ${updatedDesign.key}")`
+              ) {
+                console.log("YES IT IS A MATCH", line);
+              }
+            });
+          });
+        }
 
         response.success(res, "Design updated successfully!", {
           updatedDesign,
