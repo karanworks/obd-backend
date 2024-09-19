@@ -211,22 +211,41 @@ class DesignController {
               }
             );
 
-            // CREATING NEW DIALPLAN FILE WITH SAME DATA
-            fs.writeFile(filePath, data, "utf8", (err) => {
+            const linesCopy = [...lines];
+
+            linesCopy.forEach((line, index) => {
+              if (
+                line === `exten => 1,1,noOp("Presses ${updatedDesign.key}")`
+              ) {
+                if (updatedDesign.messageText) {
+                  console.log(
+                    "YES CONDITION GOT TRIGGERED ->",
+                    updatedDesign.messageText
+                  );
+
+                  linesCopy[
+                    index + 1
+                  ] = `same => n,agi(googletts.agi,"${updatedDesign.messageText}",en)`;
+                } else if (updatedDesign.mobileNumber) {
+                  linesCopy[
+                    index + 2
+                  ] = `same => n,Gosub(dial-gsm,s,1,(${updatedDesign.mobileNumber}))`;
+                } else if (updatedDesign.messageAudio) {
+                  linesCopy[
+                    index + 1
+                  ] = `same => n,Background(asterisk/audio/${updatedDesign.messageAudio})`;
+                }
+              }
+            });
+
+            // CREATING NEW DIALPLAN FILE WITH MODIFIED DATA
+            fs.writeFile(filePath, linesCopy.join("\n"), "utf8", (err) => {
               if (err) {
                 console.error("Error writing to the file:", err);
                 return;
               }
 
               console.log("File updated successfully.");
-            });
-
-            lines.forEach((line) => {
-              if (
-                line === `exten => 1,1,noOp("Presses ${updatedDesign.key}")`
-              ) {
-                console.log("YES IT IS A MATCH", line);
-              }
             });
           });
         }
@@ -290,7 +309,7 @@ class DesignController {
           : designType === "Audio"
           ? `same => n,Background(asterisk/audio/${designMessage})\nsame => n,Hangup()`
           : designType === "Mobile Number"
-          ? 'same => n,agi(googletts.agi,"Please wait , while we are connecting your call to Agent",en)\n`same => n,Gosub(dial-gsm,s,1,(${designMessage}))`'
+          ? `same => n,agi(googletts.agi,"Please wait , while we are connecting your call to Agent",en)\nsame => n,Gosub(dial-gsm,s,1,(${designMessage}))`
           : ""
       }`,
     ];
