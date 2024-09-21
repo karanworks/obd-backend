@@ -258,6 +258,8 @@ class CampaignsController {
   writeFile(newCampaign) {
     const dirPath = path.join(__dirname, "..", "asterisk/dialplan");
 
+    console.log("DIRECTORY NAME ->", dirPath);
+
     const fileName = newCampaign.campaignName.split(" ").join("_") + ".conf";
 
     const filePath = path.join(dirPath, fileName);
@@ -314,7 +316,12 @@ class CampaignsController {
       `${
         welcomeMsg.type === "Text"
           ? `same => n,agi(googletts.agi,"${welcomeMsg.message}",en)`
-          : `same => n,Background(asterisk/audio/${welcomeMsg.message})`
+          : // : `same => n,Background(asterisk/audio/${welcomeMsg.message})`
+            `same => n,Background(${path.join(
+              __dirname,
+              "..",
+              `asterisk/audio/${welcomeMsg.message.split(".")[0]}`
+            )})`
       }`,
       "same => n,WaitExten(2)",
       "",
@@ -322,7 +329,12 @@ class CampaignsController {
       `${
         invalidMsg.type === "Text"
           ? `same => n,agi(googletts.agi,"${invalidMsg.message}",en)`
-          : `same => n,Background(asterisk/audio/${invalidMsg.message})`
+          : // : `same => n,Background(asterisk/audio/${invalidMsg.message})`
+            `same => n,Background(${path.join(
+              __dirname,
+              "..",
+              `asterisk/audio/${invalidMsg.message.split(".")[0]}`
+            )})`
       }`,
       "same => n,Hangup()",
       "",
@@ -330,7 +342,12 @@ class CampaignsController {
       `${
         timeOutMsg.type === "Text"
           ? `same => n,agi(googletts.agi,"${timeOutMsg.message}",en)`
-          : `same => n,Background(asterisk/audio/${timeOutMsg.message})`
+          : // : `same => n,Background(asterisk/audio/${timeOutMsg.message})`
+            `same => n,Background(${path.join(
+              __dirname,
+              "..",
+              `asterisk/audio/${timeOutMsg.message.split(".")[0]}`
+            )})`
       }`,
       "same => n,Hangup()",
     ];
