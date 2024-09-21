@@ -19,6 +19,12 @@ class TestIVRController {
         where: { id: parseInt(campaignId) },
       });
 
+      const gateway = await prisma.gateway.findFirst({
+        where: {
+          id: parseInt(campaign.gatewayId),
+        },
+      });
+
       if (token) {
         const loggedInUser = await prisma.user.findFirst({
           where: {
@@ -26,7 +32,12 @@ class TestIVRController {
           },
         });
 
-        makeCall(phoneNumber, `${phoneNumber}<test>`, campaign.dialplanName);
+        makeCall(
+          phoneNumber,
+          `${phoneNumber}<test>`,
+          campaign.dialplanName,
+          gateway.userId
+        );
 
         response.success(res, "Tested IVR successfully!");
       } else {

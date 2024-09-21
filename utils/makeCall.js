@@ -1,8 +1,14 @@
 const { PrismaClient } = require("@prisma/client");
 const AsteriskManager = require("asterisk-manager");
 
-function makeCall(destinationNumber, callerId, dialplan) {
-  const ami = new AsteriskManager(5038, "localhost", "admin", "arhaan", true);
+function makeCall(destinationNumber, callerId, dialplan, gatewayName) {
+  const ami = new AsteriskManager(
+    5038,
+    "localhost",
+    "asteriskAdmin",
+    "asteriskAdmin#13",
+    true
+  );
 
   const context = dialplan; // Context defined in extensions.conf // DIALPLAN NAME (conf file name that is nothing but campaign name with underscore)
   const extension = destinationNumber;
@@ -11,7 +17,7 @@ function makeCall(destinationNumber, callerId, dialplan) {
   ami.action(
     {
       Action: "Originate",
-      Channel: `PJSIP/${extension}@gateway1206`, // Adjust for your trunk/channel
+      Channel: `PJSIP/${extension}@${gatewayName}`, // Adjust for your trunk/channel
       Context: context,
       Exten: extension,
       Priority: priority,

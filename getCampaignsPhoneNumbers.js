@@ -51,6 +51,7 @@ async function getCampaignPhoneNumbers() {
     return {
       campaign,
       channels: gateway.channels,
+      gatewayName: gateway.userId,
       phoneNumbers,
       campaignSettingId: activeCampaignSetting.id,
     };

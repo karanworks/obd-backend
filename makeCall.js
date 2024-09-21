@@ -7,7 +7,7 @@ function createRandomVariableName(baseName) {
   return `${baseName}${randomNum}`;
 }
 
-function makeCall(destinationNumber, callerId, dialplan, cddId) {
+function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
   return new Promise((resolve, reject) => {
     const randomVariableName = createRandomVariableName("ami");
 
@@ -16,8 +16,8 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
     dynamicVariables[randomVariableName] = new AsteriskManager(
       5038,
       "localhost",
-      "admin",
-      "arhaan",
+      "asteriskAdmin",
+      "asteriskAdmin#13",
       true
     );
 
@@ -28,7 +28,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId) {
     dynamicVariables[randomVariableName].action(
       {
         Action: "Originate",
-        Channel: `PJSIP/${extension}@gateway1206`, // Adjust for your trunk/channel
+        Channel: `PJSIP/${extension}@gateway206`, // Adjust for your trunk/channel
         Context: context,
         Exten: extension,
         Priority: priority,

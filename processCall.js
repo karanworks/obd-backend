@@ -47,7 +47,8 @@ async function processCall() {
           number.phoneNumber,
           `${number.phoneNumber}<${number.id}>`,
           campaignPhoneNumbers?.campaign.dialplanName,
-          number.id
+          number.id,
+          campaignPhoneNumbers.gatewayName
         )
       )
     );
