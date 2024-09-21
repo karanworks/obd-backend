@@ -98,6 +98,7 @@ class CampaignsController {
               : null,
             status: 1,
             gatewayId: gatewayId,
+            dialplanName: campaignName.split(" ").join("_"),
             addedBy: loggedInUser.id,
           },
         });
