@@ -4,6 +4,7 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const fs = require("fs");
 const path = require("path");
+const AsteriskManager = require("asterisk-manager");
 
 class GatewayController {
   constructor() {
@@ -12,6 +13,8 @@ class GatewayController {
     this.gatewayUpdatePatch = this.gatewayUpdatePatch.bind(this);
     this.gatewayRemoveDelete = this.gatewayRemoveDelete.bind(this);
     this.writeFile = this.writeFile.bind(this);
+    this.updatePJSIPFile = this.updatePJSIPFile.bind(this);
+    this.reloadPjsip = this.reloadPjsip.bind(this);
   }
 
   async gatewayGet(req, res) {
@@ -71,6 +74,15 @@ class GatewayController {
         });
 
         this.writeFile(gateway);
+
+        const gatewayFilePath = path.resolve(
+          __dirname,
+          "../asterisk/pjsip",
+          `${gateway.userId.split(" ").join("_")}.conf`
+        );
+
+        this.updatePJSIPFile(gatewayFilePath);
+        this.reloadPjsip();
 
         response.success(res, "Gateway Created Successfully", gateway);
       } else {
@@ -186,22 +198,29 @@ class GatewayController {
 
     const lines = [
       `[${gateway.userId}]`,
-      "type=endpoint",
-      "context=default",
-      "disallow=all",
-      "allow=ulaw,alaw",
-      `auth=${gateway.userId}-auth`,
-      `aors=${gateway.userId}-aors`,
-      "",
-      `[${gateway.userId + "-auth"}]`,
       "type=auth",
-      "auth-type=userpass",
+      "auth_type=userpass",
       `password=${gateway.password}`,
       `username=${gateway.userId}`,
       "",
-      `[${gateway.userId + "-aors"}]`,
+      `[${gateway.userId}]`,
       "type=aor",
       "max-contacts=1",
+      "",
+      `[${gateway.userId}]`,
+      "type=endpoint",
+      "transport=transport-udp",
+      "context=internal",
+      "disallow=all",
+      "allow=!all,opus,ulaw,alaw,vp8,vp9",
+      `auth=${gateway.userId}`,
+      `aors=${gateway.userId}`,
+      "direct_media=no",
+      "dtmf_mode=rfc4733",
+      "media_encryption=dtls",
+      "media_use_received_transport=yes",
+      "dtls_auto_generate_cert=yes",
+      "",
     ];
 
     lines.forEach((line, index) => {
@@ -211,6 +230,80 @@ class GatewayController {
         } else {
           console.log("File created and written successfully.");
         }
+      });
+    });
+  }
+
+  updatePJSIPFile(gatewayPath) {
+    const pjsipFilePath = "/etc/asterisk/pjsip.conf";
+
+    fs.readFile(pjsipFilePath, "utf8", (err, data) => {
+      if (err) {
+        return console.error("Error reading the file:", err);
+      }
+
+      // Write the modified contents back to the file
+      fs.appendFile(
+        pjsipFilePath,
+        `\n#include ${gatewayPath}`,
+        "utf8",
+        (err) => {
+          if (err) {
+            return console.error("Error writing to the file:", err);
+          }
+        }
+      );
+    });
+  }
+
+  reloadPjsip() {
+    const ami = new AsteriskManager(
+      5038,
+      "localhost",
+      "asteriskAdmin",
+      "asteriskAdmin#13",
+      true
+    );
+
+    // Listen for connection events
+    ami.on("connect", () => {
+      console.log("Connected to Asterisk Manager Interface");
+
+      // Execute 'core reload' command
+      ami.action(
+        {
+          action: "Command",
+          command: "pjsip reload",
+        },
+        (err, res) => {
+          if (err) {
+            console.error("Error executing command:", err);
+          } else {
+            console.log("Command result:", res);
+          }
+        }
+      );
+
+      // Listen for disconnection events
+      ami.on("disconnect", () => {
+        console.log("Disconnected from Asterisk Manager Interface");
+      });
+
+      // Handle any errors
+      ami.on("error", (err) => {
+        console.error("Connection error:", err);
+      });
+
+      // Log off and close the connection when done
+      ami.on("response", (response) => {
+        if (response && response.Response === "Goodbye") {
+          ami.disconnect();
+        }
+      });
+
+      // Keep the connection alive
+      process.on("SIGINT", () => {
+        ami.disconnect();
       });
     });
   }

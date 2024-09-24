@@ -28,7 +28,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
     dynamicVariables[randomVariableName].action(
       {
         Action: "Originate",
-        Channel: `PJSIP/${extension}@gateway206`, // Adjust for your trunk/channel
+        Channel: `PJSIP/${extension}@${gatewayName}`, // Adjust for your trunk/channel
         Context: context,
         Exten: extension,
         Priority: priority,

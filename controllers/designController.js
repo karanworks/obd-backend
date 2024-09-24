@@ -4,6 +4,7 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const fs = require("fs");
 const path = require("path");
+const AsteriskManager = require("asterisk-manager");
 
 class DesignController {
   constructor() {
@@ -12,6 +13,7 @@ class DesignController {
     this.designUpdatePatch = this.designUpdatePatch.bind(this);
     this.designRemoveDelete = this.designRemoveDelete.bind(this);
     this.writeFile = this.writeFile.bind(this);
+    this.reloadDialplan = this.reloadDialplan.bind(this);
   }
 
   async designsGet(req, res) {
@@ -130,6 +132,7 @@ class DesignController {
           );
         }
 
+        this.reloadDialplan();
         response.success(res, "Design created successfully!", newDesign);
       }
     } catch (error) {
@@ -247,6 +250,7 @@ class DesignController {
           });
         }
 
+        this.reloadDialplan();
         response.success(res, "Design updated successfully!", {
           updatedDesign,
         });
@@ -324,6 +328,57 @@ class DesignController {
           }
         }
       );
+    });
+  }
+  reloadDialplan() {
+    const ami = new AsteriskManager(
+      5038,
+      "localhost",
+      "asteriskAdmin",
+      "asteriskAdmin#13",
+      true
+    );
+
+    // Listen for connection events
+    ami.on("connect", () => {
+      console.log("Connected to Asterisk Manager Interface");
+
+      // Execute 'core reload' command
+      ami.action(
+        {
+          action: "Command",
+          command: "dialplan reload",
+        },
+        (err, res) => {
+          if (err) {
+            console.error("Error executing command:", err);
+          } else {
+            console.log("Command result:", res);
+          }
+        }
+      );
+
+      // Listen for disconnection events
+      ami.on("disconnect", () => {
+        console.log("Disconnected from Asterisk Manager Interface");
+      });
+
+      // Handle any errors
+      ami.on("error", (err) => {
+        console.error("Connection error:", err);
+      });
+
+      // Log off and close the connection when done
+      ami.on("response", (response) => {
+        if (response && response.Response === "Goodbye") {
+          ami.disconnect();
+        }
+      });
+
+      // Keep the connection alive
+      process.on("SIGINT", () => {
+        ami.disconnect();
+      });
     });
   }
 }
