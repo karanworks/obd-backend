@@ -57,7 +57,7 @@ class DesignController {
 
       const loggedInUser = await getLoggedInUser(req, res);
 
-      const baseUrl = "http://192.168.1.200/audio";
+      const baseUrl = "http://192.168.1.222/audio";
       // const baseUrl = "http://localhost:3008/audio";
 
       const designAlreadyExistOnKey = await prisma.design.findFirst({
@@ -143,7 +143,7 @@ class DesignController {
 
       const { designId } = req.params;
 
-      const baseUrl = "http://192.168.1.200/audio";
+      const baseUrl = "http://192.168.1.222/audio";
       // const baseUrl = "http://localhost:3008/audio";
 
       const designFound = await prisma.design.findFirst({
@@ -218,15 +218,12 @@ class DesignController {
                 line === `exten => 1,1,noOp("Presses ${updatedDesign.key}")`
               ) {
                 if (updatedDesign.messageText) {
-                  console.log(
-                    "YES CONDITION GOT TRIGGERED ->",
-                    updatedDesign.messageText
-                  );
-
                   linesCopy[
                     index + 1
                   ] = `same => n,agi(googletts.agi,"${updatedDesign.messageText}",en)`;
                 } else if (updatedDesign.mobileNumber) {
+                  linesCopy[index + 1] =
+                    'same => n,agi(googletts.agi,"Please wait , while we are connecting your call to Agent",en)';
                   linesCopy[
                     index + 2
                   ] = `same => n,Gosub(dial-gsm,s,1,(${updatedDesign.mobileNumber}))`;

@@ -105,6 +105,38 @@ class CampaignsController {
 
         this.writeFile(newCampaign);
 
+        const dialplanPath = path.join(
+          __dirname,
+          `${campaignName.split(" ").join("_")}.conf`
+        );
+
+        const extensionsConfigPath = path.resolve(
+          "/etc/asterisk/extensions.conf"
+        );
+
+        fs.readFile(extensionsConfigPath, "utf8", (err, data) => {
+          if (err) {
+            return console.error("Error reading the file:", err);
+          }
+
+          // Modify the content (this is just an example)
+
+          // Write the modified content back to the file
+          fs.appendFile(
+            extensionsConfigPath,
+            `#include ${dialplanPath}`,
+            "utf8",
+            (err) => {
+              if (err) {
+                return console.error("Error writing to the file:", err);
+              }
+              console.log("File updated successfully.");
+            }
+          );
+        });
+
+        console.log("DILAPLAN PATH MIL GYA BHAI ->", dialplanPath);
+
         response.success(res, "Campaign registered successfully!", newCampaign);
       }
     } catch (error) {
@@ -257,8 +289,6 @@ class CampaignsController {
 
   writeFile(newCampaign) {
     const dirPath = path.join(__dirname, "..", "asterisk/dialplan");
-
-    console.log("DIRECTORY NAME ->", dirPath);
 
     const fileName = newCampaign.campaignName.split(" ").join("_") + ".conf";
 
