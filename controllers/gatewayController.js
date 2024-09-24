@@ -201,12 +201,10 @@ class GatewayController {
       "type=auth",
       "auth_type=userpass",
       `password=${gateway.password}`,
-      `username=${gateway.userId}`,
-      "",
+      `username=${gateway.userId}\n`,
       `[${gateway.userId}]`,
       "type=aor",
-      "max-contacts=1",
-      "",
+      "max_contacts=1\n",
       `[${gateway.userId}]`,
       "type=endpoint",
       "transport=transport-udp",
@@ -220,7 +218,6 @@ class GatewayController {
       "media_encryption=dtls",
       "media_use_received_transport=yes",
       "dtls_auto_generate_cert=yes",
-      "",
     ];
 
     lines.forEach((line, index) => {

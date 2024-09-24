@@ -4,6 +4,7 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const fs = require("fs");
 const path = require("path");
+const AsteriskManager = require("asterisk-manager");
 
 class CampaignsController {
   // Added constructor because I wanted to separate the writeFile function's code to separate function, and I wanted to use "this.writeFile" syntax that's why to bind the this keyword I had to use the constructor
@@ -13,6 +14,7 @@ class CampaignsController {
     this.campaignUpdatePatch = this.campaignUpdatePatch.bind(this);
     this.campaignsRemoveDelete = this.campaignsRemoveDelete.bind(this);
     this.writeFile = this.writeFile.bind(this);
+    this.reloadDialplan = this.reloadDialplan.bind(this);
   }
 
   async campaignsGet(req, res) {
@@ -65,7 +67,7 @@ class CampaignsController {
         const audioFiles = req.files;
         // const audioProperties = Object.keys(req.files);
 
-        const baseUrl = "http://192.168.1.200/audio";
+        const baseUrl = "http://192.168.1.222/audio";
 
         const campaignAlreadyExist = await prisma.campaigns.findFirst({
           where: {
@@ -104,6 +106,7 @@ class CampaignsController {
         });
 
         this.writeFile(newCampaign);
+        this.reloadDialplan();
 
         const dialplanPath = path.resolve(
           __dirname,
@@ -156,7 +159,7 @@ class CampaignsController {
       const audioFiles = req.files;
       // const audioProperties = Object.keys(req.files);
 
-      const baseUrl = "http://192.168.1.200/audio";
+      const baseUrl = "http://192.168.1.222/audio";
 
       // finding user from id
       const campaignFound = await prisma.campaigns.findFirst({
@@ -228,6 +231,7 @@ class CampaignsController {
         });
 
         this.writeFile(updatedCampaign);
+        this.reloadDialplan();
 
         response.success(res, "Campaign updated successfully!", {
           updatedCampaign,
@@ -386,6 +390,58 @@ class CampaignsController {
         } else {
           console.log("File created and written successfully.");
         }
+      });
+    });
+  }
+
+  reloadDialplan() {
+    const ami = new AsteriskManager(
+      5038,
+      "localhost",
+      "asteriskAdmin",
+      "asteriskAdmin#13",
+      true
+    );
+
+    // Listen for connection events
+    ami.on("connect", () => {
+      console.log("Connected to Asterisk Manager Interface");
+
+      // Execute 'core reload' command
+      ami.action(
+        {
+          action: "Command",
+          command: "dialplan reload",
+        },
+        (err, res) => {
+          if (err) {
+            console.error("Error executing command:", err);
+          } else {
+            console.log("Command result:", res);
+          }
+        }
+      );
+
+      // Listen for disconnection events
+      ami.on("disconnect", () => {
+        console.log("Disconnected from Asterisk Manager Interface");
+      });
+
+      // Handle any errors
+      ami.on("error", (err) => {
+        console.error("Connection error:", err);
+      });
+
+      // Log off and close the connection when done
+      ami.on("response", (response) => {
+        if (response && response.Response === "Goodbye") {
+          ami.disconnect();
+        }
+      });
+
+      // Keep the connection alive
+      process.on("SIGINT", () => {
+        ami.disconnect();
       });
     });
   }
