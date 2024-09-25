@@ -21,7 +21,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
       true
     );
 
-    const context = dialplan; // Context defined in extensions.conf
+    const context = dialplan; // Context defined in extensions.conf // DIALPLAN NAME (conf file name that is nothing but campaign name with underscore)
     const extension = destinationNumber;
     const priority = 1;
 
@@ -38,8 +38,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
       function (err, response) {
         if (err) {
           console.error("Error making call:", err);
-          dynamicVariables[randomVariableName].disconnect(); // Disconnect on error
-          reject(err);
+          // reject(err); // Properly handle the error by rejecting the promise
         } else {
           console.log("Call initiated:", response);
         }
@@ -53,16 +52,28 @@ function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
     dynamicVariables[randomVariableName].on("managerevent", (event) => {
       if (event.event === "Newchannel") {
         // Handle new call event
+
         startTime = new Date();
         console.log("----------------NEW CALL MADE----------------");
+
+        // console.log("New call:", event);
       }
 
       if (event.event === "Hangup") {
-        console.log("HANGUP EVENT ->", event);
+        console.log("HOLD UP EVENT ->", event);
+
+        // console.log(
+        //   "----------------EVENT CDR AFTER HANGUP ----------------->",
+        //   event,
+        //   "CDD ID ->",
+        //   cddId
+        // );
 
         // Handle call hangup event
         const { channel, reason } = event;
         endTime = new Date();
+
+        console.log("");
 
         if (parseInt(event.connectedlinenum) === cddId) {
           prisma.callResponseCDR
@@ -90,18 +101,16 @@ function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
                 endTime,
               },
             })
-            .then(() => {
-              // Successfully created CDR
+            .then((res) => {
+              // console.log("CDR CREATED!", event);
             })
             .catch((err) => {
               console.log("UNIQUE ERROR ->", err);
             })
             .finally(() => {
-              dynamicVariables[randomVariableName].disconnect(); // Disconnect after handling
               resolve(); // Resolve the promise when the operation is complete
             });
         } else {
-          dynamicVariables[randomVariableName].disconnect(); // Disconnect if condition does not match
           resolve(); // Resolve if the condition does not match
         }
       }
@@ -129,7 +138,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
               userField: event.userfield,
             },
           })
-          .then(() => {
+          .then((res) => {
             console.log("CDR REPORT CREATED ->", res);
           })
           .catch((err) => {
@@ -143,8 +152,7 @@ function makeCall(destinationNumber, callerId, dialplan, cddId, gatewayName) {
     // Handle errors
     dynamicVariables[randomVariableName].on("error", (err) => {
       console.error("AMI Error:", err);
-      dynamicVariables[randomVariableName].disconnect(); // Disconnect on error
-      reject(err);
+      reject(err); // Properly handle errors by rejecting the promise
     });
   });
 }

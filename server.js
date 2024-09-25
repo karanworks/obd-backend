@@ -67,6 +67,14 @@ app.use("/", gatewayRouter);
 app.use("/", TestIVRRouter);
 app.use("/", ReportRouter);
 
+app.use((err, req, res, next) => {
+  console.error(err.stack); // Log the error stack trace
+
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+  });
+});
+
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
 });
